@@ -67,4 +67,14 @@ class MathFunctionsTest: XCTestCase {
     XCTAssertEqual(a1, (dleq.g1.power(dleq.r!, modulus: dleq.q) * h1.power(dleq.c!, modulus: dleq.q)) % q)
     XCTAssertEqual(a2, (dleq.g2.power(dleq.r!, modulus: dleq.q) * h2.power(dleq.c!, modulus: dleq.q)) % q)
   }
+  
+  func testPolynomial() {
+    let q: BigUInt = 15486967
+    let coefficients: [BigUInt] = [105211, 1548877	, 892134, 3490857, 324, 14234735]
+    let x: BigUInt = 278
+    
+    let polynomial = Polynomial(coefficients: coefficients, q: q)
+    
+    XCTAssertEqual(polynomial.getValue(x: x), 4115179)
+  }
 }
