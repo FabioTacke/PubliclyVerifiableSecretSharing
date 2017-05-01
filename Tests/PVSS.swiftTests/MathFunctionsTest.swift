@@ -8,6 +8,7 @@
 
 import XCTest
 import BigInt
+import CryptoSwift
 @testable import PVSS_swift
 
 class MathFunctionsTest: XCTestCase {
@@ -76,5 +77,18 @@ class MathFunctionsTest: XCTestCase {
     let polynomial = Polynomial(coefficients: coefficients, q: q)
     
     XCTAssertEqual(polynomial.getValue(x: x), 4115179)
+  }
+  
+  func testHashing() {
+    let value1: BigUInt = BigUInt("43589072349864890574839")!
+    let value2: BigUInt = BigUInt("14735247304952934566")!
+    
+    var digest = SHA2(variant: .sha256)
+    let _ = try! digest.update(withBytes: value1.description.data(using: .utf8)!)
+    let _ = try! digest.update(withBytes: value2.description.data(using: .utf8)!)
+    let result = try! digest.finish()
+    
+    XCTAssertEqual(result.toHexString(), "e25e5b7edf4ea66e5238393fb4f183e0fc1593c69a522f9255a51bd0bc2b7ba7")
+    XCTAssertEqual(BigUInt(result.toHexString(), radix: 16), BigUInt(stringLiteral: "102389418883295205726805934198606438410316463205994911160958467170744727731111"))
   }
 }
