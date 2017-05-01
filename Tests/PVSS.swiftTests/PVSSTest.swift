@@ -64,4 +64,16 @@ class PVSSTest: XCTestCase {
       XCTAssertEqual(distributionBundle.responses[publicKeys[i]], responses[publicKeys[i]])
     }
   }
+  
+  func testDistributionBundleVerification() {
+    let distributor = Participant(pvssInstance: pvssInstance, privateKey: privateKey, publicKey: pvssInstance.generatePublicKey(privateKey: privateKey))
+    let polynomial = Polynomial(coefficients: [BigUInt(164102006), BigUInt(43489589), BigUInt(98100795)])
+    let threshold: Int = 3
+    let publicKeys: [BigUInt] = [BigUInt(92086053), BigUInt(132222922), BigUInt(120540987)]
+    let w: BigUInt = BigUInt(6345)
+    
+    let distributionBundle = distributor.distribute(publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
+    
+    XCTAssert(pvssInstance.verify(distributionBundle: distributionBundle))
+  }
 }
