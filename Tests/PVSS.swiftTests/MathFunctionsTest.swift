@@ -74,9 +74,9 @@ class MathFunctionsTest: XCTestCase {
     let coefficients: [BigUInt] = [105211, 1548877	, 892134, 3490857, 324, 14234735]
     let x: BigUInt = 278
     
-    let polynomial = Polynomial(coefficients: coefficients, q: q)
-    
-    XCTAssertEqual(polynomial.getValue(x: x), 4115179)
+    let polynomial = Polynomial(coefficients: coefficients)
+
+    XCTAssertEqual(polynomial.getValue(x: x) % q, 4115179)
   }
   
   func testHashing() {

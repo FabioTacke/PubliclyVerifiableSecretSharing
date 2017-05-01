@@ -11,21 +11,19 @@ import BigInt
 
 public struct Polynomial {
   let coefficients: [BigUInt]
-  let q: BigUInt
   
-  init(coefficients: [BigUInt], q: BigUInt) {
+  init(coefficients: [BigUInt]) {
     self.coefficients = coefficients
-    self.q = q
   }
   
-  init(degree: Int, q: BigUInt, bitLength: Int) {
+  init(degree: Int, bitLength: Int) {
     var coefficientList: [BigUInt] = []
     
     for _ in 0...degree {
       coefficientList.append(BigUInt.randomInteger(withMaximumWidth: bitLength))
     }
     
-   self.init(coefficients: coefficientList, q: q)
+   self.init(coefficients: coefficientList)
   }
   
   // Calculate p(x)
@@ -34,8 +32,8 @@ public struct Polynomial {
     var temp: BigUInt = 1
     
     for i in 1..<coefficients.count {
-      temp = (temp * x) % q
-      result = (result + (coefficients[i] * temp)) % q
+      temp = (temp * x)
+      result = (result + (coefficients[i] * temp))
     }
     
     return result

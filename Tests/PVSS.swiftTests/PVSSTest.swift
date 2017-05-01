@@ -38,7 +38,7 @@ class PVSSTest: XCTestCase {
   
   func testDistribution() {
     let distributor = Participant(pvssInstance: pvssInstance, privateKey: privateKey, publicKey: pvssInstance.generatePublicKey(privateKey: privateKey))
-    let polynomial = Polynomial(coefficients: [BigUInt(164102006), BigUInt(43489589), BigUInt(98100795)], q: pvssInstance.q)
+    let polynomial = Polynomial(coefficients: [BigUInt(164102006), BigUInt(43489589), BigUInt(98100795)])
     let threshold: Int = 3
     let publicKeys: [BigUInt] = [BigUInt(92086053), BigUInt(132222922), BigUInt(120540987)]
     let w: BigUInt = BigUInt(6345)
@@ -47,9 +47,9 @@ class PVSSTest: XCTestCase {
     
     // Correct values
     let commitments: [BigUInt] = [BigUInt(92318234), BigUInt(76602245), BigUInt(63484157)]
-    let shares: [BigUInt: BigUInt] = [publicKeys[0]: BigUInt(93679330), publicKeys[1]: BigUInt(23600097), publicKeys[2]: BigUInt(83281787)]
-    let challenge: BigUInt = BigUInt(stringLiteral: "44877005908692244720987079277372844402068698569169934035689104688030541677997")
-    let responses: [BigUInt: BigUInt] = [publicKeys[0]: BigUInt(37666739), publicKeys[1]: BigUInt(29469762), publicKeys[2]: BigUInt(38461281)]
+    let shares: [BigUInt: BigUInt] = [publicKeys[0]: BigUInt(66302038), publicKeys[1]: BigUInt(77501044), publicKeys[2]: BigUInt(92606102)]
+    let challenge: BigUInt = BigUInt(95567444)
+    let responses: [BigUInt: BigUInt] = [publicKeys[0]: BigUInt(70109777), publicKeys[1]: BigUInt(91929113), publicKeys[2]: BigUInt(13301501)]
     
     // Check calculated values
     XCTAssertEqual(distributionBundle.publicKeys[0], publicKeys[0])
