@@ -73,4 +73,21 @@ public struct PVSSInstance {
     
     return challengeInt == distributionBundle.challenge
   }
+  
+  func verify(shareBundle: ShareBundle, encryptedShare: BigUInt) -> Bool {
+    var digest = SHA2(variant: .sha256)
+    
+    let a1 = (G.power(shareBundle.response, modulus: q) * shareBundle.publicKey.power(shareBundle.challenge, modulus: q)) % q
+    let a2 = (shareBundle.share.power(shareBundle.response, modulus: q) * encryptedShare.power(shareBundle.challenge, modulus: q)) % q
+    
+    let _ = try! digest.update(withBytes: shareBundle.publicKey.description.data(using: .utf8)!)
+    let _ = try! digest.update(withBytes: encryptedShare.description.data(using: .utf8)!)
+    let _ = try! digest.update(withBytes: a1.description.data(using: .utf8)!)
+    let _ = try! digest.update(withBytes: a2.description.data(using: .utf8)!)
+    
+    let challengeHash = try! digest.finish().toHexString()
+    let challengeInt = BigUInt(challengeHash, radix: 16)! % (q - 1)
+    
+    return challengeInt == shareBundle.challenge
+  }
 }

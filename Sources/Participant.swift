@@ -101,4 +101,32 @@ public class Participant {
     let w = BigUInt.randomPrime(length: pvssInstance.length) % pvssInstance.q
     return distribute(publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
   }
+  
+  func extractShare(distributionBundle: DistributionBundle, privateKey: BigUInt, w: BigUInt) -> ShareBundle? {
+    let publicKey = pvssInstance.generatePublicKey(privateKey: privateKey)
+    guard let encryptedShare = distributionBundle.shares[publicKey] else {
+      return nil
+    }
+    
+    let share = encryptedShare.power(privateKey.inverse(pvssInstance.q - 1)!, modulus: pvssInstance.q)
+    
+    var dleq = DLEQ(g1: pvssInstance.G, h1: publicKey, g2: share, h2: encryptedShare, length: pvssInstance.length, q: pvssInstance.q, alpha: privateKey, w: w)
+    var digest = SHA2(variant: .sha256)
+    let _ = try! digest.update(withBytes: publicKey.description.data(using: .utf8)!)
+    let _ = try! digest.update(withBytes: encryptedShare.description.data(using: .utf8)!)
+    let _ = try! digest.update(withBytes: dleq.a1.description.data(using: .utf8)!)
+    let _ = try! digest.update(withBytes: dleq.a2.description.data(using: .utf8)!)
+    let challengeHash = try! digest.finish().toHexString()
+    let challengeInt = BigUInt(challengeHash, radix: 16)! % (pvssInstance.q - 1)
+    
+    dleq.c = challengeInt
+    
+    let shareBundle = ShareBundle(publicKey: publicKey, share: share, challenge: challengeInt, response: dleq.r!)
+    
+    return shareBundle
+  }
+  
+  func extractShare(distributionBundle: DistributionBundle, privateKey: BigUInt) -> ShareBundle? {
+    return extractShare(distributionBundle: distributionBundle, privateKey: privateKey, w: BigUInt.randomInteger(withMaximumWidth: pvssInstance.length) % pvssInstance.q)
+  }
 }

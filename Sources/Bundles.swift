@@ -10,7 +10,8 @@ import Foundation
 import BigInt
 
 public struct ShareBundle {
-  let secret: BigUInt
+  let publicKey: BigUInt
+  let share: BigUInt
   let challenge: BigUInt
   let response: BigUInt
 }

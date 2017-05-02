@@ -66,14 +66,36 @@ class PVSSTest: XCTestCase {
   }
   
   func testDistributionBundleVerification() {
+    let distributionBundle = getDistributionBundle()
+    
+    XCTAssert(pvssInstance.verify(distributionBundle: distributionBundle))
+  }
+  
+  func testShareBundleVerification() {
+    let distributionBundle = getDistributionBundle()
+    
+    // Calculate share bundle of participant P_1
+    let privateKey: BigUInt = BigUInt(7901)
+    let w: BigUInt = 1337
+    let participant = Participant(pvssInstance: pvssInstance, privateKey: privateKey, publicKey: pvssInstance.generatePublicKey(privateKey: privateKey))
+    let shareBundle: ShareBundle = participant.extractShare(distributionBundle: distributionBundle, privateKey: privateKey, w: w)!
+    
+    XCTAssert(pvssInstance.verify(shareBundle: shareBundle, encryptedShare: distributionBundle.shares[participant.publicKey]!))
+  }
+  
+  // Use fixed distribution bundle parameters for the tests
+  func getDistributionBundle() -> DistributionBundle {
     let distributor = Participant(pvssInstance: pvssInstance, privateKey: privateKey, publicKey: pvssInstance.generatePublicKey(privateKey: privateKey))
     let polynomial = Polynomial(coefficients: [BigUInt(164102006), BigUInt(43489589), BigUInt(98100795)])
     let threshold: Int = 3
-    let publicKeys: [BigUInt] = [BigUInt(92086053), BigUInt(132222922), BigUInt(120540987)]
+    let privateKeys: [BigUInt] = [BigUInt(7901), BigUInt(4801), BigUInt(1453)]
+    var publicKeys: [BigUInt] = []
     let w: BigUInt = BigUInt(6345)
     
-    let distributionBundle = distributor.distribute(publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
+    for key in privateKeys {
+      publicKeys.append(pvssInstance.generatePublicKey(privateKey: key))
+    }
     
-    XCTAssert(pvssInstance.verify(distributionBundle: distributionBundle))
+    return distributor.distribute(publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
   }
 }
