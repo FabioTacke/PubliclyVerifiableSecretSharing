@@ -23,4 +23,5 @@ public struct DistributionBundle {
   let publicKeys: [BigUInt]
   let challenge: BigUInt
   let responses: [BigUInt: BigUInt]
+  let U: BigUInt
 }

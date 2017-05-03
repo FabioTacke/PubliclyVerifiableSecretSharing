@@ -28,9 +28,8 @@ public class Participant {
     self.init(pvssInstance: pvssInstance, privateKey: privateKey, publicKey: publicKey)
   }
   
-  //  For now the secret cannot be chosen by the participant. Later function signature should look like this:
-  //  func distribute(secret: BigUInt, publicKeys: [BigUInt], threshold: Int, polynomial: Polynomial, w: BigUInt) -> DistributionBundle {
-  func distribute(publicKeys: [BigUInt], threshold: Int, polynomial: Polynomial, w: BigUInt) -> DistributionBundle {
+  
+  func distribute(secret: BigUInt, publicKeys: [BigUInt], threshold: Int, polynomial: Polynomial, w: BigUInt) -> DistributionBundle {
     assert(threshold <= publicKeys.count)
     
     // Data the distribution bundle is going to be consisting of
@@ -96,15 +95,20 @@ public class Participant {
       }
     }
     
-    return DistributionBundle(commitments: commitments, positions: positions, shares: shares, publicKeys: publicKeys, challenge: challengeInt, responses: responses)
+    // Calculate U = sigma XOR SHA256(G^s)
+    // sigma: secret to share
+    let sharedValue = pvssInstance.G.power(polynomial.getValue(x: 0) % (pvssInstance.q - 1), modulus: pvssInstance.q)
+    let sharedValueHash = sharedValue.description.sha256()
+    let hashInt = BigUInt(sharedValueHash, radix: 16)! % (pvssInstance.q)
+    let U = secret ^ hashInt
+    
+    return DistributionBundle(commitments: commitments, positions: positions, shares: shares, publicKeys: publicKeys, challenge: challengeInt, responses: responses, U: U)
   }
   
-  //  For now the secret cannot be chosen by the participant. Later function signature should look like this:
-  //  func distribute(secret: BigUInt, publicKeys: [BigUInt], threshold: Int) -> DistributionBundle {
-  func distribute(publicKeys: [BigUInt], threshold: Int) -> DistributionBundle {
+  func distribute(secret: BigUInt, publicKeys: [BigUInt], threshold: Int) -> DistributionBundle {
     let polynomial = Polynomial(degree: threshold - 1, bitLength: pvssInstance.length)
     let w = BigUInt.randomPrime(length: pvssInstance.length) % pvssInstance.q
-    return distribute(publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
+    return distribute(secret: secret, publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
   }
   
   func extractShare(distributionBundle: DistributionBundle, privateKey: BigUInt, w: BigUInt) -> ShareBundle? {

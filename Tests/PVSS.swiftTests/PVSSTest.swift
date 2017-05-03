@@ -15,6 +15,7 @@ class PVSSTest: XCTestCase {
   
   var pvssInstance: PVSSInstance!
   var privateKey: BigUInt!
+  var secret: BigUInt!
   
   override func setUp() {
     super.setUp()
@@ -27,6 +28,7 @@ class PVSSTest: XCTestCase {
     
     pvssInstance = PVSSInstance(length: length, q: q, g: g, G: G)
     privateKey = BigUInt(105929)
+    secret = BigUInt(1234567890)
   }
   
   func testPublicKeyGenerator() {
@@ -90,12 +92,12 @@ class PVSSTest: XCTestCase {
     let shareBundles = [shareBundle1, shareBundle2, shareBundle3]
 
     // All the shares are present
-    guard let secret = pvssInstance.reconstruct(shareBundles: shareBundles, distributionBundle: distributionBundle) else {
+    guard let reconstructedSecret = pvssInstance.reconstruct(shareBundles: shareBundles, distributionBundle: distributionBundle) else {
       XCTFail()
       return
     }
 
-    XCTAssertEqual(secret, BigUInt(86264892))
+    XCTAssertEqual(reconstructedSecret, secret)
   }
   
   // 3 out of 4 shares are present. Share of P_3 is not available, therefore we need another Share of P_4 in order to reconstruct the secret.
@@ -108,15 +110,15 @@ class PVSSTest: XCTestCase {
     var positions = [shareBundle1.publicKey: 1, shareBundle2.publicKey: 2, shareBundle4.publicKey: 4]
     positions.removeValue(forKey: BigUInt(65136827))
     positions[publicKey4] = 4
-    let distributionBundle = DistributionBundle(commitments: [0, 1, 2], positions: positions, shares: [:], publicKeys: [], challenge: BigUInt(0), responses: [:])
+    let distributionBundle = DistributionBundle(commitments: [0, 1, 2], positions: positions, shares: [:], publicKeys: [], challenge: BigUInt(0), responses: [:], U: BigUInt(1284073502))
     let shareBundles = [shareBundle1, shareBundle2, shareBundle4]
     
-    guard let secret = pvssInstance.reconstruct(shareBundles: shareBundles, distributionBundle: distributionBundle) else {
+    guard let reconstructedSecret = pvssInstance.reconstruct(shareBundles: shareBundles, distributionBundle: distributionBundle) else {
       XCTFail()
       return
     }
     
-    XCTAssertEqual(secret, BigUInt(86264892))
+    XCTAssertEqual(reconstructedSecret, secret)
     
   }
   
@@ -133,7 +135,7 @@ class PVSSTest: XCTestCase {
       publicKeys.append(pvssInstance.generatePublicKey(privateKey: key))
     }
     
-    return distributor.distribute(publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
+    return distributor.distribute(secret: secret, publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
   }
   
   // Use fixed share bundle for the tests

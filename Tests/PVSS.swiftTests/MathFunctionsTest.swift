@@ -92,6 +92,14 @@ class MathFunctionsTest: XCTestCase {
     XCTAssertEqual(BigUInt(result.toHexString(), radix: 16), BigUInt(stringLiteral: "102389418883295205726805934198606438410316463205994911160958467170744727731111"))
   }
   
+  func testXor() {
+    let a = BigUInt(1337)
+    let b = BigUInt(42)
+    let xor = a ^ b
+    
+    XCTAssertEqual(xor, BigUInt(1299))
+  }
+  
   func testLagrange() {
     let lagrangeCoefficient = PVSSInstance.lagrangeCoefficient(i: 3, values: [1, 3, 4])
     

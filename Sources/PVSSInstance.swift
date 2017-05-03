@@ -144,7 +144,11 @@ public struct PVSSInstance {
       secret = (secret * factor) % q
     }
     
-    return secret
+    let sharedSecretHash = secret.description.sha256()
+    let hashInt = BigUInt(sharedSecretHash, radix: 16)! % q
+    let decryptedSecret = hashInt ^ distributionBundle.U
+    
+    return decryptedSecret
   }
   
   static func lagrangeCoefficient(i: Int, values: [Int]) -> (numerator: Int, denominator: Int) {
