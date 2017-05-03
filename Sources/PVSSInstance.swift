@@ -92,4 +92,76 @@ public struct PVSSInstance {
     
     return challengeInt == shareBundle.challenge
   }
+  
+  func reconstruct(shareBundles: [ShareBundle], distributionBundle: DistributionBundle) -> BigUInt? {
+    if shareBundles.count < distributionBundle.commitments.count {
+      return nil
+    }
+    
+    var shares: [Int: BigUInt] = [:]
+    
+    for shareBundle in shareBundles {
+      guard let position = distributionBundle.positions[shareBundle.publicKey] else {
+        return nil
+      }
+      shares[position] = shareBundle.share
+    }
+    
+    var secret: BigUInt = 1
+    
+    for (position, share) in shares {
+      var exponent: BigUInt = 1
+      let lagrangeCoefficient = PVSSInstance.lagrangeCoefficient(i: position, values: Array(shares.keys))
+      
+      if lagrangeCoefficient.numerator % lagrangeCoefficient.denominator == 0 {
+        // Lagrange coefficient is an integer
+        exponent = BigUInt(lagrangeCoefficient.numerator / abs(lagrangeCoefficient.denominator))
+      } else {
+        // Lagrange coefficient is a proper fraction
+        // Cancel fraction if possible
+        var numerator = BigUInt(lagrangeCoefficient.numerator)
+        var denominator = BigUInt(abs(lagrangeCoefficient.denominator))
+        let gcd = BigUInt.gcd(numerator, denominator)
+        numerator = numerator.divided(by: gcd).quotient
+        denominator = denominator.divided(by: gcd).quotient
+        
+        if let inverseDenominator = denominator.inverse(q - 1) {
+          exponent = (numerator * inverseDenominator) % (q - 1)
+        } else {
+          // Denominator of Lagrange coefficient fraction does not have an inverse. Share cannot be processed.
+          return nil
+        }
+      }
+      var factor = share.power(exponent, modulus: q)
+      if lagrangeCoefficient.numerator * lagrangeCoefficient.denominator < 0 {
+        // Lagrange coefficient was negative. S^(-lambda) = 1/(S^lambda)
+        if let inverseFactor = factor.inverse(q) {
+          factor = inverseFactor
+        } else {
+          return nil
+        }
+      }
+      secret = (secret * factor) % q
+    }
+    
+    return secret
+  }
+  
+  static func lagrangeCoefficient(i: Int, values: [Int]) -> (numerator: Int, denominator: Int) {
+    if !values.contains(i) {
+      return (0, 1)
+    }
+    
+    var numerator: Int = 1
+    var denominator: Int = 1
+    
+    for j in 1...values.max()! {
+      if j != i && values.contains(j) {
+        numerator *= j
+        denominator *= (j-i)
+      }
+    }
+    
+    return (numerator, denominator)
+  }
 }

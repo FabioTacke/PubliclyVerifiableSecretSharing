@@ -81,6 +81,45 @@ class PVSSTest: XCTestCase {
     XCTAssert(pvssInstance.verify(shareBundle: shareBundle, encryptedShare: distributionBundle.shares[pvssInstance.generatePublicKey(privateKey: privateKey)]!))
   }
   
+  func testReconstructionWithAllParticipants() {
+    let distributionBundle = getDistributionBundle()
+    let shareBundle1 = getShareBundle()
+    let shareBundle2 = ShareBundle(publicKey: BigUInt(132222922), share: BigUInt(157312059), challenge: BigUInt(0), response: BigUInt(0))
+    let shareBundle3 = ShareBundle(publicKey: BigUInt(65136827), share: BigUInt(63399333), challenge: BigUInt(0), response: BigUInt(0))
+    
+    let shareBundles = [shareBundle1, shareBundle2, shareBundle3]
+
+    // All the shares are present
+    guard let secret = pvssInstance.reconstruct(shareBundles: shareBundles, distributionBundle: distributionBundle) else {
+      XCTFail()
+      return
+    }
+
+    XCTAssertEqual(secret, BigUInt(86264892))
+  }
+  
+  // 3 out of 4 shares are present. Share of P_3 is not available, therefore we need another Share of P_4 in order to reconstruct the secret.
+  func testReconstructionWithSubgroup() {
+    let shareBundle1 = getShareBundle()
+    let shareBundle2 = ShareBundle(publicKey: BigUInt(132222922), share: BigUInt(157312059), challenge: BigUInt(0), response: BigUInt(0))
+    let publicKey4 = BigUInt(42)
+    let shareBundle4 = ShareBundle(publicKey: publicKey4, share: BigUInt(59066181), challenge: BigUInt(0), response: BigUInt(0))
+    
+    var positions = [shareBundle1.publicKey: 1, shareBundle2.publicKey: 2, shareBundle4.publicKey: 4]
+    positions.removeValue(forKey: BigUInt(65136827))
+    positions[publicKey4] = 4
+    let distributionBundle = DistributionBundle(commitments: [0, 1, 2], positions: positions, shares: [:], publicKeys: [], challenge: BigUInt(0), responses: [:])
+    let shareBundles = [shareBundle1, shareBundle2, shareBundle4]
+    
+    guard let secret = pvssInstance.reconstruct(shareBundles: shareBundles, distributionBundle: distributionBundle) else {
+      XCTFail()
+      return
+    }
+    
+    XCTAssertEqual(secret, BigUInt(86264892))
+    
+  }
+  
   // Use fixed distribution bundle parameters for the tests
   func getDistributionBundle() -> DistributionBundle {
     let distributor = Participant(pvssInstance: pvssInstance, privateKey: privateKey, publicKey: pvssInstance.generatePublicKey(privateKey: privateKey))
