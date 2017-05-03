@@ -35,7 +35,7 @@ public class Participant {
     
     // Data the distribution bundle is going to be consisting of
     var commitments: [BigUInt] = []
-    var positions: [BigUInt: BigUInt] = [:]
+    var positions: [BigUInt: Int] = [:]
     var X: [BigUInt: BigUInt] = [:]
     var shares: [BigUInt: BigUInt] = [:]
     var challenge = SHA2(variant: .sha256)
@@ -44,7 +44,7 @@ public class Participant {
     var samplingPoints: [BigUInt: BigUInt] = [:]
     var a: [BigUInt: (BigUInt, BigUInt)] = [:]
     var dleq_w: [BigUInt: BigUInt] = [:]
-    var position: BigUInt = 1
+    var position: Int = 1
     
     // Calculate commitments C_j
     for j in 0..<threshold {
@@ -53,7 +53,7 @@ public class Participant {
     
     for key in publicKeys {
       positions[key] = position
-      let samplingPoint = polynomial.getValue(x: position) % (pvssInstance.q - 1)
+      let samplingPoint = polynomial.getValue(x: BigUInt(position)) % (pvssInstance.q - 1)
       samplingPoints[key] = samplingPoint
       
       // Calculate X_i
@@ -61,7 +61,7 @@ public class Participant {
       var exponent: BigUInt = 1
       for j in 0...threshold - 1 {
         x = (x * commitments[j].power(exponent, modulus: pvssInstance.q)) % pvssInstance.q
-        exponent = (exponent * position) % (pvssInstance.q - 1)
+        exponent = (exponent * BigUInt(position)) % (pvssInstance.q - 1)
       }
       X[key] = x
       

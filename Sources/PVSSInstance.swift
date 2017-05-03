@@ -55,7 +55,7 @@ public struct PVSSInstance {
       var exponent: BigUInt = 1
       for j in 0..<distributionBundle.commitments.count {
         x = (x * distributionBundle.commitments[j].power(exponent, modulus: q)) % q
-        exponent = (exponent * position) % (q - 1)
+        exponent = (exponent * BigUInt(position)) % (q - 1)
       }
       
       // Calculate a_1i, a_2i
