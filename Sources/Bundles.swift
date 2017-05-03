@@ -18,6 +18,7 @@ public struct ShareBundle {
 
 public struct DistributionBundle {
   let commitments: [BigUInt]
+  let positions: [BigUInt: BigUInt]
   let shares: [BigUInt: BigUInt]
   let publicKeys: [BigUInt]
   let challenge: BigUInt

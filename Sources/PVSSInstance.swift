@@ -44,19 +44,21 @@ public struct PVSSInstance {
     var digest = SHA2(variant: .sha256)
     
     for key in distributionBundle.publicKeys {
+      guard let position = distributionBundle.positions[key],
+        let response = distributionBundle.responses[key],
+        let share = distributionBundle.shares[key] else {
+          return false
+      }
+      
       // Calculate X_i
       var x: BigUInt = 1
       var exponent: BigUInt = 1
       for j in 0..<distributionBundle.commitments.count {
         x = (x * distributionBundle.commitments[j].power(exponent, modulus: q)) % q
-        exponent = (exponent * key) % (q - 1)
+        exponent = (exponent * position) % (q - 1)
       }
       
       // Calculate a_1i, a_2i
-      guard let response = distributionBundle.responses[key],
-            let share = distributionBundle.shares[key] else {
-              return false
-      }
       
       let a1 = (g.power(response, modulus: q) * x.power(distributionBundle.challenge, modulus: q)) % q
       let a2 = (key.power(response, modulus: q) * (share.power(distributionBundle.challenge, modulus: q))) % q

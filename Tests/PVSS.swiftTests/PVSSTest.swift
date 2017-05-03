@@ -37,31 +37,25 @@ class PVSSTest: XCTestCase {
   }
   
   func testDistribution() {
-    let distributor = Participant(pvssInstance: pvssInstance, privateKey: privateKey, publicKey: pvssInstance.generatePublicKey(privateKey: privateKey))
-    let polynomial = Polynomial(coefficients: [BigUInt(164102006), BigUInt(43489589), BigUInt(98100795)])
-    let threshold: Int = 3
-    let publicKeys: [BigUInt] = [BigUInt(92086053), BigUInt(132222922), BigUInt(120540987)]
-    let w: BigUInt = BigUInt(6345)
-    
-    let distributionBundle = distributor.distribute(publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
+    let distributionBundle = getDistributionBundle()
     
     // Correct values
     let commitments: [BigUInt] = [BigUInt(92318234), BigUInt(76602245), BigUInt(63484157)]
-    let shares: [BigUInt: BigUInt] = [publicKeys[0]: BigUInt(66302038), publicKeys[1]: BigUInt(77501044), publicKeys[2]: BigUInt(92606102)]
-    let challenge: BigUInt = BigUInt(95567444)
-    let responses: [BigUInt: BigUInt] = [publicKeys[0]: BigUInt(70109777), publicKeys[1]: BigUInt(91929113), publicKeys[2]: BigUInt(13301501)]
+    let shares: [BigUInt: BigUInt] = [distributionBundle.publicKeys[0]: BigUInt(42478042), distributionBundle.publicKeys[1]: BigUInt(80117658), distributionBundle.publicKeys[2]: BigUInt(86941725)]
+    let challenge: BigUInt = BigUInt(41963410)
+    let responses: [BigUInt: BigUInt] = [distributionBundle.publicKeys[0]: BigUInt(151565889), distributionBundle.publicKeys[1]: BigUInt(146145105), distributionBundle.publicKeys[2]: BigUInt(71350321)]
     
     // Check calculated values
-    XCTAssertEqual(distributionBundle.publicKeys[0], publicKeys[0])
-    XCTAssertEqual(distributionBundle.publicKeys[1], publicKeys[1])
-    XCTAssertEqual(distributionBundle.publicKeys[2], publicKeys[2])
+    XCTAssertEqual(distributionBundle.publicKeys[0], distributionBundle.publicKeys[0])
+    XCTAssertEqual(distributionBundle.publicKeys[1], distributionBundle.publicKeys[1])
+    XCTAssertEqual(distributionBundle.publicKeys[2], distributionBundle.publicKeys[2])
     
     XCTAssertEqual(distributionBundle.challenge, challenge)
     
     for i in 0...2 {
       XCTAssertEqual(distributionBundle.commitments[i], commitments[i])
-      XCTAssertEqual(distributionBundle.shares[publicKeys[i]], shares[publicKeys[i]])
-      XCTAssertEqual(distributionBundle.responses[publicKeys[i]], responses[publicKeys[i]])
+      XCTAssertEqual(distributionBundle.shares[distributionBundle.publicKeys[i]], shares[distributionBundle.publicKeys[i]])
+      XCTAssertEqual(distributionBundle.responses[distributionBundle.publicKeys[i]], responses[distributionBundle.publicKeys[i]])
     }
   }
   
@@ -71,16 +65,20 @@ class PVSSTest: XCTestCase {
     XCTAssert(pvssInstance.verify(distributionBundle: distributionBundle))
   }
   
+  func testShareExtraction() {
+    let shareBundle = getShareBundle()
+    
+    XCTAssertEqual(shareBundle.share, BigUInt(164021044))
+    XCTAssertEqual(shareBundle.challenge, BigUInt(134883166))
+    XCTAssertEqual(shareBundle.response, BigUInt(81801891))
+  }
+  
   func testShareBundleVerification() {
+    let privateKey = BigUInt(7901)
     let distributionBundle = getDistributionBundle()
+    let shareBundle = getShareBundle()
     
-    // Calculate share bundle of participant P_1
-    let privateKey: BigUInt = BigUInt(7901)
-    let w: BigUInt = 1337
-    let participant = Participant(pvssInstance: pvssInstance, privateKey: privateKey, publicKey: pvssInstance.generatePublicKey(privateKey: privateKey))
-    let shareBundle: ShareBundle = participant.extractShare(distributionBundle: distributionBundle, privateKey: privateKey, w: w)!
-    
-    XCTAssert(pvssInstance.verify(shareBundle: shareBundle, encryptedShare: distributionBundle.shares[participant.publicKey]!))
+    XCTAssert(pvssInstance.verify(shareBundle: shareBundle, encryptedShare: distributionBundle.shares[pvssInstance.generatePublicKey(privateKey: privateKey)]!))
   }
   
   // Use fixed distribution bundle parameters for the tests
@@ -97,5 +95,17 @@ class PVSSTest: XCTestCase {
     }
     
     return distributor.distribute(publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
+  }
+  
+  // Use fixed share bundle for the tests
+  func getShareBundle() -> ShareBundle {
+    let distributionBundle = getDistributionBundle()
+    
+    // Calculate share bundle of participant P_1
+    let privateKey: BigUInt = BigUInt(7901)
+    let w: BigUInt = 1337
+    let participant = Participant(pvssInstance: pvssInstance, privateKey: privateKey, publicKey: pvssInstance.generatePublicKey(privateKey: privateKey))
+    
+    return participant.extractShare(distributionBundle: distributionBundle, privateKey: privateKey, w: w)!
   }
 }

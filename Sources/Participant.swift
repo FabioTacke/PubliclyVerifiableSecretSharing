@@ -35,6 +35,7 @@ public class Participant {
     
     // Data the distribution bundle is going to be consisting of
     var commitments: [BigUInt] = []
+    var positions: [BigUInt: BigUInt] = [:]
     var X: [BigUInt: BigUInt] = [:]
     var shares: [BigUInt: BigUInt] = [:]
     var challenge = SHA2(variant: .sha256)
@@ -43,6 +44,7 @@ public class Participant {
     var samplingPoints: [BigUInt: BigUInt] = [:]
     var a: [BigUInt: (BigUInt, BigUInt)] = [:]
     var dleq_w: [BigUInt: BigUInt] = [:]
+    var position: BigUInt = 1
     
     // Calculate commitments C_j
     for j in 0..<threshold {
@@ -50,7 +52,8 @@ public class Participant {
     }
     
     for key in publicKeys {
-      let samplingPoint = polynomial.getValue(x: key) % (pvssInstance.q - 1)
+      positions[key] = position
+      let samplingPoint = polynomial.getValue(x: position) % (pvssInstance.q - 1)
       samplingPoints[key] = samplingPoint
       
       // Calculate X_i
@@ -58,7 +61,7 @@ public class Participant {
       var exponent: BigUInt = 1
       for j in 0...threshold - 1 {
         x = (x * commitments[j].power(exponent, modulus: pvssInstance.q)) % pvssInstance.q
-        exponent = (exponent * key) % (pvssInstance.q - 1)
+        exponent = (exponent * position) % (pvssInstance.q - 1)
       }
       X[key] = x
       
@@ -76,6 +79,8 @@ public class Participant {
       let _ = try! challenge.update(withBytes: share.description.data(using: .utf8)!)
       let _ = try! challenge.update(withBytes: dleq.a1.description.data(using: .utf8)!)
       let _ = try! challenge.update(withBytes: dleq.a2.description.data(using: .utf8)!)
+      
+      position += 1
     }
     
     let challengeHash = try! challenge.finish().toHexString()
@@ -91,7 +96,7 @@ public class Participant {
       }
     }
     
-    return DistributionBundle(commitments: commitments, shares: shares, publicKeys: publicKeys, challenge: challengeInt, responses: responses)
+    return DistributionBundle(commitments: commitments, positions: positions, shares: shares, publicKeys: publicKeys, challenge: challengeInt, responses: responses)
   }
   
   //  For now the secret cannot be chosen by the participant. Later function signature should look like this:
