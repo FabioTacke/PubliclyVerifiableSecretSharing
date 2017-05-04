@@ -1,6 +1,6 @@
 //
 //  PVSSTest.swift
-//  PVSS.swift
+//  PVSS
 //
 //  Created by Fabio Tacke on 28.04.17.
 //
@@ -9,7 +9,7 @@
 import XCTest
 import BigInt
 import CryptoSwift
-@testable import PVSS_swift
+@testable import PVSS
 
 class PVSSTest: XCTestCase {
   

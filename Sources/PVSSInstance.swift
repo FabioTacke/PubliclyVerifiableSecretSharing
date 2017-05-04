@@ -1,6 +1,6 @@
 //
-//  PVSS_swift.swift
-//  PVSS.swift
+//  PVSSInstance.swift
+//  PVSS
 //
 //  Created by Fabio Tacke on 26.04.17.
 //
