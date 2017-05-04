@@ -100,7 +100,7 @@ class PVSSTest: XCTestCase {
     XCTAssertEqual(reconstructedSecret, secret)
   }
   
-  // 3 out of 4 shares are present. Share of P_3 is not available, therefore we need another Share of P_4 in order to reconstruct the secret.
+  // 3 out of 4 shares are present. Share of P3 is not available, therefore we need another Share of P_4 in order to reconstruct the secret.
   func testReconstructionWithSubgroup() {
     let shareBundle1 = getShareBundle()
     let shareBundle2 = ShareBundle(publicKey: BigUInt(132222922), share: BigUInt(157312059), challenge: BigUInt(0), response: BigUInt(0))

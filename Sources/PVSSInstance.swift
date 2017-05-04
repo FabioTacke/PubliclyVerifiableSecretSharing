@@ -65,7 +65,6 @@ public struct PVSSInstance {
       }
       
       // Calculate a_1i, a_2i
-      
       let a1 = (g.power(response, modulus: q) * x.power(distributionBundle.challenge, modulus: q)) % q
       let a2 = (key.power(response, modulus: q) * (share.power(distributionBundle.challenge, modulus: q))) % q
       
@@ -76,6 +75,7 @@ public struct PVSSInstance {
       let _ = try! digest.update(withBytes: a2.description.data(using: .utf8)!)
     }
     
+    // Calculate challenge
     let challengeHash = try! digest.finish().toHexString()
     let challengeInt = BigUInt(challengeHash, radix: 16)! % (q - 1)
     
@@ -150,6 +150,7 @@ public struct PVSSInstance {
       secret = (secret * factor) % q
     }
     
+    // Recover the secret sigma = H(G^s) XOR U
     let sharedSecretHash = secret.description.sha256()
     let hashInt = BigUInt(sharedSecretHash, radix: 16)! % q
     let decryptedSecret = hashInt ^ distributionBundle.U
