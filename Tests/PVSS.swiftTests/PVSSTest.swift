@@ -122,6 +122,58 @@ class PVSSTest: XCTestCase {
     
   }
   
+  func testExample() {
+    let secretMessage = "Correct horse battery staple."
+    let secret = BigUInt(secretMessage.data(using: .utf8)!)
+    
+    // Create PVSS Instance with parameter length 256 bit
+    let pvssInstance = PVSSInstance(length: 256)
+    
+    // Participants p1, p2 and p3
+    let p1 = Participant(pvssInstance: pvssInstance)
+    let p2 = Participant(pvssInstance: pvssInstance)
+    let p3 = Participant(pvssInstance: pvssInstance)
+    
+    // Dealer that shares the secret among p1, p2 and p3
+    let dealer = Participant(pvssInstance: pvssInstance)
+    let distributionBundle = dealer.distribute(secret: secret, publicKeys: [p1.publicKey, p2.publicKey, p3.publicKey], threshold: 3)
+    
+    // Receivers verify distribution bundle
+    XCTAssert(p1.pvssInstance.verify(distributionBundle: distributionBundle))
+    XCTAssert(p2.pvssInstance.verify(distributionBundle: distributionBundle))
+    XCTAssert(p3.pvssInstance.verify(distributionBundle: distributionBundle))
+    
+    // Receivers extract extract (and submit) their shares
+    guard let s1 = p1.extractShare(distributionBundle: distributionBundle, privateKey: p1.privateKey),
+      let s2 = p2.extractShare(distributionBundle: distributionBundle, privateKey: p2.privateKey),
+      let s3 = p3.extractShare(distributionBundle: distributionBundle, privateKey: p3.privateKey) else {
+        XCTFail()
+        return
+    }
+    
+    // Receivers verify the shares
+    XCTAssert(p1.pvssInstance.verify(shareBundle: s2, encryptedShare: distributionBundle.shares[p2.publicKey]!))
+    XCTAssert(p1.pvssInstance.verify(shareBundle: s3, encryptedShare: distributionBundle.shares[p3.publicKey]!))
+    XCTAssert(p2.pvssInstance.verify(shareBundle: s1, encryptedShare: distributionBundle.shares[p1.publicKey]!))
+    XCTAssert(p2.pvssInstance.verify(shareBundle: s3, encryptedShare: distributionBundle.shares[p3.publicKey]!))
+    XCTAssert(p3.pvssInstance.verify(shareBundle: s1, encryptedShare: distributionBundle.shares[p1.publicKey]!))
+    XCTAssert(p3.pvssInstance.verify(shareBundle: s2, encryptedShare: distributionBundle.shares[p2.publicKey]!))
+  
+    // Receivers reconstruct the secret
+    let shareBundles = [s1, s2, s3]
+    
+    guard let r1 = p1.pvssInstance.reconstruct(shareBundles: shareBundles, distributionBundle: distributionBundle),
+      let r2 = p2.pvssInstance.reconstruct(shareBundles: shareBundles, distributionBundle: distributionBundle),
+      let r3 = p3.pvssInstance.reconstruct(shareBundles: shareBundles, distributionBundle: distributionBundle) else {
+        XCTFail()
+        return
+    }
+    
+    XCTAssertEqual(String(data: r1.serialize(), encoding: .utf8)!, secretMessage)
+    XCTAssertEqual(String(data: r2.serialize(), encoding: .utf8)!, secretMessage)
+    XCTAssertEqual(String(data: r3.serialize(), encoding: .utf8)!, secretMessage)
+  }
+  
   // Use fixed distribution bundle parameters for the tests
   func getDistributionBundle() -> DistributionBundle {
     let distributor = Participant(pvssInstance: pvssInstance, privateKey: privateKey, publicKey: pvssInstance.generatePublicKey(privateKey: privateKey))
