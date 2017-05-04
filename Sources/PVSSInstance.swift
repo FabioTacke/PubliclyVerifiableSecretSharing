@@ -33,7 +33,13 @@ public struct PVSSInstance {
   }
   
   func generatePrivateKey() -> BigUInt {
-    return BigUInt.randomPrime(length: length) % q
+    var key = BigUInt.randomPrime(length: length) % q
+    
+    // We need the private key and q-1 to be coprime so that we can calculate 1/key mod (q-1) during secret reconstruction.
+    while BigUInt.gcd(key, q - 1) != 1 {
+      key = BigUInt.randomPrime(length: length) % q
+    }
+    return key
   }
   
   func generatePublicKey(privateKey: BigUInt) -> BigUInt {
