@@ -29,6 +29,13 @@ public class Participant {
     self.init(pvssInstance: pvssInstance, privateKey: privateKey, publicKey: publicKey)
   }
   
+  /// Initializes a new participant. `length` bit numbers are used for all numbers and calculations. Default value is 256.
+  ///
+  /// - Parameter length: Number of bits used for all numbers and calculcations.
+  convenience init(length: Int = 256) {
+    self.init(pvssInstance: PVSSInstance(length: length))
+  }
+  
   
   /// Takes a secret as input and returns the distribution bundle which is going to be submitted to all the participants the secret is going to be shared with. Those participants are specified by their public keys. They use the distribution bundle to verify that the shares are correct (without learning anything about the shares that are not supposed to be decrypted by them) and extract their encrypted shares. In fact, the distribution bundle can be published to everyone allowing even external parties to verify the integrity of the shares.
   ///

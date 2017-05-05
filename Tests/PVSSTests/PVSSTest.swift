@@ -126,16 +126,15 @@ class PVSSTest: XCTestCase {
     let secretMessage = "Correct horse battery staple."
     let secret = BigUInt(secretMessage.data(using: .utf8)!)
     
-    // Create PVSS Instance with parameter length 256 bit
-    let pvssInstance = PVSSInstance(length: 256)
+    // Create PVSS Instance with default parameter length 256 bit
+    let dealer = Participant()
     
     // Participants p1, p2 and p3
-    let p1 = Participant(pvssInstance: pvssInstance)
-    let p2 = Participant(pvssInstance: pvssInstance)
-    let p3 = Participant(pvssInstance: pvssInstance)
+    let p1 = Participant(pvssInstance: dealer.pvssInstance)
+    let p2 = Participant(pvssInstance: dealer.pvssInstance)
+    let p3 = Participant(pvssInstance: dealer.pvssInstance)
     
     // Dealer that shares the secret among p1, p2 and p3
-    let dealer = Participant(pvssInstance: pvssInstance)
     let distributionBundle = dealer.distribute(secret: secret, publicKeys: [p1.publicKey, p2.publicKey, p3.publicKey], threshold: 3)
     
     // Receivers verify distribution bundle
