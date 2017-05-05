@@ -9,6 +9,7 @@
 import BigInt
 import CryptoSwift
 
+/// A PVSSInstance represents an instance of a publicly verifiable secret sharing scheme, i.e. a set of parameters used for all the operations during the secret sharing process like distribution of the shared secret, extraction of the shares, reconstruction of the secret and verification of all the received messages.
 public struct PVSSInstance {
   let q: BigUInt
   let g: BigUInt
@@ -23,6 +24,9 @@ public struct PVSSInstance {
     self.G = G
   }
   
+  /// Initializes a PVSSInstance with random parameters that uses `length` bit numbers for all operations in the PVSS.
+  ///
+  /// - Parameter length: Number of bits used for choosing numbers and doing calculations.
   init(length: Int) {
     let q = BigUInt.randomPrime(length: length)
     
@@ -46,6 +50,10 @@ public struct PVSSInstance {
     return G.power(privateKey, modulus: q)
   }
   
+  /// Verifies that the shares the distribution bundle consists are consistent so that they can be used to reconstruct the secret later.
+  ///
+  /// - Parameter distributionBundle: The distribution bundle whose consistency is to be verified.
+  /// - Returns: Returns `true` if the shares are correct and `false` otherwise.
   func verify(distributionBundle: DistributionBundle) -> Bool {
     var digest = SHA2(variant: .sha256)
     
@@ -82,6 +90,12 @@ public struct PVSSInstance {
     return challengeInt == distributionBundle.challenge
   }
   
+  /// Verifies if the share in the share bundle was decrypted correctly by the respective participant.
+  ///
+  /// - Parameters:
+  ///   - shareBundle: The share bundle containing the share to be verified.
+  ///   - encryptedShare: The encrypted share from the distribution bundle.
+  /// - Returns: Returns `true` if the share in the share bundle matches the decryption of the encrypted share and `false` otherwise.
   func verify(shareBundle: ShareBundle, encryptedShare: BigUInt) -> Bool {
     var digest = SHA2(variant: .sha256)
     
@@ -99,6 +113,13 @@ public struct PVSSInstance {
     return challengeInt == shareBundle.challenge
   }
   
+  /// Processes the given shares and reconstructs the shared secret. The reconstruction may fail if the PVSSInstance parameters chosen by the dealer imply some mathematical limitations that concern inverting a number.
+  ///
+  /// - Parameters:
+  ///   - shareBundles: Array of share bundles containing the shares to be processed.
+  ///   - distributionBundle: The distribution bundle published by the dealer.
+  ///
+  /// - Returns: Returns the secret if the reconstruction process succeeded or `nil` if the reconstruction is not possible for the given set of shares due to mathematical limitations.
   func reconstruct(shareBundles: [ShareBundle], distributionBundle: DistributionBundle) -> BigUInt? {
     if shareBundles.count < distributionBundle.commitments.count {
       return nil
