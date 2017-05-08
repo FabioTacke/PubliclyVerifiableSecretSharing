@@ -30,7 +30,7 @@ public struct DLEQ {
   
   var r: BigUInt? {
     if let c = c {
-      return (BigInt(w) - BigInt(alpha * c)).mod(modulus: q-1)
+      return BigInt.modulus(a: BigInt(w) - BigInt(alpha * c), b: q - 1).abs
     } else {
       return nil
     }

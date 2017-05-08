@@ -25,15 +25,13 @@ extension BigUInt {
 
 extension BigInt {
   
-  public func mod(modulus: BigUInt) -> BigUInt {
-    let abs = self.abs
-    let div = abs.divided(by: modulus)
-    
-    if self.negative && div.remainder != 0 {
-      let factor = BigInt(abs: div.quotient + 1, negative: true)
-      return ((factor * BigInt(modulus)) - self).abs
-    } else {
-      return div.remainder
+  public static func modulus(a: BigInt, b: BigInt) -> BigInt {
+    if a.negative == b.negative {
+      return BigInt(abs: a.abs % b.abs, negative: a.negative)
+    }
+    else {
+      let floor = ((a / b) - 1) * b
+      return BigInt(abs: (floor.abs - a.abs) % b.abs, negative: b.negative)
     }
   }
 }
