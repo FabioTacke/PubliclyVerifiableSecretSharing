@@ -12,17 +12,17 @@ import CryptoSwift
 
 /// A participant represents one party in the secret sharing scheme. The participant can share a secret among a group of other participants and is then called the "dealer". The receiving participants that receive a part of the secret can use it to reconstruct the secret Therefore the partticipants need to collaborate and exchange their parts.
 public class Participant {
-  let pvssInstance: PVSSInstance
-  let privateKey: BigUInt
-  let publicKey: BigUInt
+  public let pvssInstance: PVSSInstance
+  public let privateKey: BigUInt
+  public let publicKey: BigUInt
   
-  init(pvssInstance: PVSSInstance, privateKey: BigUInt, publicKey: BigUInt) {
+  public init(pvssInstance: PVSSInstance, privateKey: BigUInt, publicKey: BigUInt) {
     self.pvssInstance = pvssInstance
     self.privateKey = privateKey
     self.publicKey = publicKey
   }
   
-  convenience init(pvssInstance: PVSSInstance) {
+  public convenience init(pvssInstance: PVSSInstance) {
     let privateKey = pvssInstance.generatePrivateKey()
     let publicKey = pvssInstance.generatePublicKey(privateKey: privateKey)
     
@@ -32,7 +32,7 @@ public class Participant {
   /// Initializes a new participant. `length` bit numbers are used for all numbers and calculations. Default value is 256.
   ///
   /// - Parameter length: Number of bits used for all numbers and calculcations.
-  convenience init(length: Int = 256) {
+  public convenience init(length: Int = 256) {
     self.init(pvssInstance: PVSSInstance(length: length))
   }
   
@@ -49,7 +49,7 @@ public class Participant {
   ///   - `threshold` <= number of participants
   ///   - degree of polynomial = `threshold` - 1
   /// - Returns: The distribution bundle that is published so everyone (especially but not only the participants) can check the shares' integrity. Furthermore the participants extract their shares from it.
-  func distribute(secret: BigUInt, publicKeys: [BigUInt], threshold: Int, polynomial: Polynomial, w: BigUInt) -> DistributionBundle {
+  public func distribute(secret: BigUInt, publicKeys: [BigUInt], threshold: Int, polynomial: Polynomial, w: BigUInt) -> DistributionBundle {
     assert(threshold <= publicKeys.count)
     
     // Data the distribution bundle is going to be consisting of
@@ -133,7 +133,7 @@ public class Participant {
   ///   - threshold: The number of shares that is needed in order to reconstruct the secret. It must not be greater than the total number of participants.
   /// - Requires: `threshold` <= number of participants
   /// - Returns: The distribution bundle that is published so everyone (especially but not only the participants) can check the shares' integrity. Furthermore the participants extract their shares from it.
-  func distribute(secret: BigUInt, publicKeys: [BigUInt], threshold: Int) -> DistributionBundle {
+  public func distribute(secret: BigUInt, publicKeys: [BigUInt], threshold: Int) -> DistributionBundle {
     let polynomial = Polynomial(degree: threshold - 1, bitLength: pvssInstance.length)
     let w = BigUInt.randomPrime(length: pvssInstance.length) % pvssInstance.q
     return distribute(secret: secret, publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
@@ -146,7 +146,7 @@ public class Participant {
   ///   - privateKey: The participant's private key used to decrypt the share.
   ///   - w: An arbitrary chosen value needed for creating the proof that the share is correct.
   /// - Returns: The share bundle that is to be submitted to all the other participants in order to reconstruct the secret. It consists of the share itself and the proof that allows the receiving participant to verify its correctness. Return `nil` if the distribution bundle does not contain a share for the participant.
-  func extractShare(distributionBundle: DistributionBundle, privateKey: BigUInt, w: BigUInt) -> ShareBundle? {
+  public func extractShare(distributionBundle: DistributionBundle, privateKey: BigUInt, w: BigUInt) -> ShareBundle? {
     let publicKey = pvssInstance.generatePublicKey(privateKey: privateKey)
     guard let encryptedShare = distributionBundle.shares[publicKey] else {
       return nil
@@ -176,7 +176,7 @@ public class Participant {
   ///   - distributionBundle: The distribution bundle that consists the share to be extracted.
   ///   - privateKey: The participant's private key used to decrypt the share.
   /// - Returns: The share bundle that is to be submitted to all the other participants in order to reconstruct the secret. It consists of the share itself and the proof that allows the receiving participant to verify its correctness. Return `nil` if the distribution bundle does not contain a share for the participant.
-  func extractShare(distributionBundle: DistributionBundle, privateKey: BigUInt) -> ShareBundle? {
+  public func extractShare(distributionBundle: DistributionBundle, privateKey: BigUInt) -> ShareBundle? {
     return extractShare(distributionBundle: distributionBundle, privateKey: privateKey, w: BigUInt.randomInteger(withMaximumWidth: pvssInstance.length) % pvssInstance.q)
   }
 }

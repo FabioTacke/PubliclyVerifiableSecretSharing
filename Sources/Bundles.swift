@@ -10,18 +10,37 @@ import Foundation
 import BigInt
 
 public struct ShareBundle {
-  let publicKey: BigUInt
-  let share: BigUInt
-  let challenge: BigUInt
-  let response: BigUInt
+  public let publicKey: BigUInt
+  public let share: BigUInt
+  public let challenge: BigUInt
+  public let response: BigUInt
+  
+  public init(publicKey: BigUInt, share: BigUInt, challenge: BigUInt, response: BigUInt)
+  {
+    self.publicKey = publicKey
+    self.share = share
+    self.challenge = challenge
+    self.response = response
+  }
 }
 
 public struct DistributionBundle {
-  let commitments: [BigUInt]
-  let positions: [BigUInt: Int]
-  let shares: [BigUInt: BigUInt]
-  let publicKeys: [BigUInt]
-  let challenge: BigUInt
-  let responses: [BigUInt: BigUInt]
-  let U: BigUInt
+  public let commitments: [BigUInt]
+  public let positions: [BigUInt: Int]
+  public let shares: [BigUInt: BigUInt]
+  public let publicKeys: [BigUInt]
+  public let challenge: BigUInt
+  public let responses: [BigUInt: BigUInt]
+  public let U: BigUInt
+  
+  public init(commitments: [BigUInt], positions: [BigUInt: Int], shares: [BigUInt: BigUInt], publicKeys: [BigUInt], challenge: BigUInt, responses: [BigUInt: BigUInt], U: BigUInt) {
+    self.commitments = commitments
+    self.positions = positions
+    self.shares = shares
+    self.publicKeys = publicKeys
+    self.challenge = challenge
+    self.responses = responses
+    self.U = U
+  }
+  
 }

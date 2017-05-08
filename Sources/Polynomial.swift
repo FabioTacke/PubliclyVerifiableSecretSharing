@@ -12,11 +12,11 @@ import BigInt
 public struct Polynomial {
   let coefficients: [BigUInt]
   
-  init(coefficients: [BigUInt]) {
+  public init(coefficients: [BigUInt]) {
     self.coefficients = coefficients
   }
   
-  init(degree: Int, bitLength: Int) {
+  public init(degree: Int, bitLength: Int) {
     var coefficientList: [BigUInt] = []
     
     for _ in 0...degree {
@@ -27,7 +27,7 @@ public struct Polynomial {
   }
   
   // Calculate p(x)
-  func getValue(x: BigUInt) -> BigUInt {
+  public func getValue(x: BigUInt) -> BigUInt {
     var result: BigUInt = coefficients[0]
     var temp: BigUInt = 1
     

@@ -17,7 +17,7 @@ public struct PVSSInstance {
   
   let length: Int
   
-  init(length: Int, q: BigUInt, g: BigUInt, G: BigUInt) {
+  public init(length: Int, q: BigUInt, g: BigUInt, G: BigUInt) {
     self.length = length
     self.q = q
     self.g = g
@@ -27,7 +27,7 @@ public struct PVSSInstance {
   /// Initializes a PVSSInstance with random parameters that uses `length` bit numbers for all operations in the PVSS.
   ///
   /// - Parameter length: Number of bits used for choosing numbers and doing calculations.
-  init(length: Int) {
+  public init(length: Int) {
     let q = BigUInt.randomPrime(length: length)
     
     let g = BigUInt.randomPrime(length: length) % q
@@ -36,7 +36,7 @@ public struct PVSSInstance {
     self.init(length: length, q: q, g: g, G: G)
   }
   
-  func generatePrivateKey() -> BigUInt {
+  public func generatePrivateKey() -> BigUInt {
     var key = BigUInt.randomPrime(length: length) % q
     
     // We need the private key and q-1 to be coprime so that we can calculate 1/key mod (q-1) during secret reconstruction.
@@ -46,7 +46,7 @@ public struct PVSSInstance {
     return key
   }
   
-  func generatePublicKey(privateKey: BigUInt) -> BigUInt {
+  public func generatePublicKey(privateKey: BigUInt) -> BigUInt {
     return G.power(privateKey, modulus: q)
   }
   
@@ -54,7 +54,7 @@ public struct PVSSInstance {
   ///
   /// - Parameter distributionBundle: The distribution bundle whose consistency is to be verified.
   /// - Returns: Returns `true` if the shares are correct and `false` otherwise.
-  func verify(distributionBundle: DistributionBundle) -> Bool {
+  public func verify(distributionBundle: DistributionBundle) -> Bool {
     var digest = SHA2(variant: .sha256)
     
     for key in distributionBundle.publicKeys {
@@ -96,7 +96,7 @@ public struct PVSSInstance {
   ///   - shareBundle: The share bundle containing the share to be verified.
   ///   - encryptedShare: The encrypted share from the distribution bundle.
   /// - Returns: Returns `true` if the share in the share bundle matches the decryption of the encrypted share and `false` otherwise.
-  func verify(shareBundle: ShareBundle, encryptedShare: BigUInt) -> Bool {
+  public func verify(shareBundle: ShareBundle, encryptedShare: BigUInt) -> Bool {
     var digest = SHA2(variant: .sha256)
     
     let a1 = (G.power(shareBundle.response, modulus: q) * shareBundle.publicKey.power(shareBundle.challenge, modulus: q)) % q
@@ -120,7 +120,7 @@ public struct PVSSInstance {
   ///   - distributionBundle: The distribution bundle published by the dealer.
   ///
   /// - Returns: Returns the secret if the reconstruction process succeeded or `nil` if the reconstruction is not possible for the given set of shares due to mathematical limitations.
-  func reconstruct(shareBundles: [ShareBundle], distributionBundle: DistributionBundle) -> BigUInt? {
+  public func reconstruct(shareBundles: [ShareBundle], distributionBundle: DistributionBundle) -> BigUInt? {
     if shareBundles.count < distributionBundle.commitments.count {
       return nil
     }
@@ -179,7 +179,7 @@ public struct PVSSInstance {
     return decryptedSecret
   }
   
-  static func lagrangeCoefficient(i: Int, values: [Int]) -> (numerator: Int, denominator: Int) {
+  public static func lagrangeCoefficient(i: Int, values: [Int]) -> (numerator: Int, denominator: Int) {
     if !values.contains(i) {
       return (0, 1)
     }
