@@ -3,7 +3,7 @@
 The library implements a PVSS scheme in Swift. The algorithm is based on "A Simple Publicly Verifiable Secret Sharing Scheme and its Application to Electronic Voting" by Berry Schoenmakers.
 
 ## What is PVSS?
-Secret sharing means a dealer can split a secret among a group of participants which can reconstruct the secret only by collaboratively joining their parts of the secret. The library also implements threshold cryptography so that the dealer can decide whether all of the receiving participants need to collaborate or if a smaller subgroup of participants is sifficient to reconstruct the secret.
+Secret sharing means a dealer can split a secret among a group of participants which can reconstruct the secret only by collaboratively joining their parts of the secret. The library also implements threshold cryptography so that the dealer can decide whether all of the receiving participants need to collaborate or if a smaller subgroup of participants is sufficient to reconstruct the secret.
 
 In addition to the plain secret sharing scheme PVSS adds verifiability in the following way: All the parts the secret is split into are encrypted with the receivers' public keys respectively. The dealer publishes all the encrypted shares along with a non-interactive zero-knowledge proof that allows everbody (not only the receiving participants) to verify that the decrypted shares indeed can be used to reconstruct the secret. The participants then decrypt all their shares and exchange them along with another non-interactive zero-knowledge proof that allows the receiving participant to verify that the share is actually the result of the decryption.
 
@@ -69,4 +69,5 @@ let shareBundles = [s1, s2, s3]
 let r1 = p1.pvssInstance.reconstruct(shareBundles: shareBundles, distributionBundle: distributionBundle)!
 
 print(String(data: r1.serialize(), encoding: .utf8)!)
-// Correct horse battery staple.```
+// Correct horse battery staple.
+```
