@@ -151,12 +151,12 @@ class PVSSTest: XCTestCase {
     }
     
     // Receivers verify the shares
-    XCTAssert(p1.pvssInstance.verify(shareBundle: s2, encryptedShare: distributionBundle.shares[p2.publicKey]!))
-    XCTAssert(p1.pvssInstance.verify(shareBundle: s3, encryptedShare: distributionBundle.shares[p3.publicKey]!))
-    XCTAssert(p2.pvssInstance.verify(shareBundle: s1, encryptedShare: distributionBundle.shares[p1.publicKey]!))
-    XCTAssert(p2.pvssInstance.verify(shareBundle: s3, encryptedShare: distributionBundle.shares[p3.publicKey]!))
-    XCTAssert(p3.pvssInstance.verify(shareBundle: s1, encryptedShare: distributionBundle.shares[p1.publicKey]!))
-    XCTAssert(p3.pvssInstance.verify(shareBundle: s2, encryptedShare: distributionBundle.shares[p2.publicKey]!))
+    XCTAssert(p1.pvssInstance.verify(shareBundle: s2, distributionBundle: distributionBundle, publicKey: p2.publicKey))
+    XCTAssert(p1.pvssInstance.verify(shareBundle: s3, distributionBundle: distributionBundle, publicKey: p3.publicKey))
+    XCTAssert(p2.pvssInstance.verify(shareBundle: s1, distributionBundle: distributionBundle, publicKey: p1.publicKey))
+    XCTAssert(p2.pvssInstance.verify(shareBundle: s3, distributionBundle: distributionBundle, publicKey: p3.publicKey))
+    XCTAssert(p3.pvssInstance.verify(shareBundle: s1, distributionBundle: distributionBundle, publicKey: p1.publicKey))
+    XCTAssert(p3.pvssInstance.verify(shareBundle: s2, distributionBundle: distributionBundle, publicKey: p2.publicKey))
   
     // Receivers reconstruct the secret
     let shareBundles = [s1, s2, s3]

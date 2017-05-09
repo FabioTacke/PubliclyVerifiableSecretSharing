@@ -94,6 +94,21 @@ public struct PVSSInstance {
   ///
   /// - Parameters:
   ///   - shareBundle: The share bundle containing the share to be verified.
+  ///   - distributionBundle: The distribution bundle that contains the share.
+  ///   - publicKey: The public key of the sender of the share bundle.
+  /// - Returns: Returns `true` if the share in the share bundle matches the decryption of the encrypted share and `false` otherwise.
+  public func verify(shareBundle: ShareBundle, distributionBundle: DistributionBundle, publicKey: BigUInt) -> Bool {
+    let shareCandidate = distributionBundle.shares[publicKey]
+    guard let share = shareCandidate else {
+      return false
+    }
+    return verify(shareBundle: shareBundle, encryptedShare: share)
+  }
+  
+  /// Verifies if the share in the share bundle was decrypted correctly by the respective participant.
+  ///
+  /// - Parameters:
+  ///   - shareBundle: The share bundle containing the share to be verified.
   ///   - encryptedShare: The encrypted share from the distribution bundle.
   /// - Returns: Returns `true` if the share in the share bundle matches the decryption of the encrypted share and `false` otherwise.
   public func verify(shareBundle: ShareBundle, encryptedShare: BigUInt) -> Bool {
