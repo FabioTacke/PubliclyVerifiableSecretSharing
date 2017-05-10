@@ -6,10 +6,10 @@ Pod::Spec.new do |s|
 The library implements a PVSS scheme in Swift. The algorithm is based on "A Simple Publicly Verifiable Secret Sharing Scheme and its Application to Electronic Voting" by Berry Schoenmakers.
                        DESC
 
-  s.homepage         = 'https://github.com/StrangeHunter/PubliclyVerifiableSecretSharing'
+  s.homepage         = 'https://github.com/FabioTacke/PubliclyVerifiableSecretSharing'
   s.license          = { :type => 'MIT', :file => 'LICENSE.md' }
   s.author           = { 'Fabio Tacke' => 'fabio@tacke.berlin' }
-  s.source           = { :git => 'https://github.com/StrangeHunter/PubliclyVerifiableSecretSharing.git', :tag => 'v1.0.1' }
+  s.source           = { :git => 'https://github.com/FabioTacke/PubliclyVerifiableSecretSharing.git', :tag => 'v1.0.2' }
   s.social_media_url = 'https://twitter.com/FabioTacke'
 
   s.source_files = 'Sources/*.swift'

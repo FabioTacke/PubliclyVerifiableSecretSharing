@@ -12,10 +12,10 @@ Thus PVSS can be used to share a secret among a group of participants so that ei
 ## Installation
 
 ### Swift Package Manager
-`.Package(url: "https://github.com/StrangeHunter/PubliclyVerifiableSecretSharing.git", majorVersion: 1)`
+`.Package(url: "https://github.com/FabioTacke/PubliclyVerifiableSecretSharing.git", majorVersion: 1)`
 
 ### CocoaPods
-`pod 'PVSS', :git => "https://github.com/StrangeHunter/PubliclyVerifiableSecretSharing.git", '~> 1.0'`
+`pod 'PVSS', :git => "https://github.com/FabioTacke/PubliclyVerifiableSecretSharing.git", '~> 1.0'`
 
 ## Usage
 This section will guide you through the basic steps taken in the PVSS scheme.
