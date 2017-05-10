@@ -24,6 +24,9 @@ This section will guide you through the basic steps taken in the PVSS scheme.
 At first we convert our secret message into a numeric value if necessary. When creating the dealer a PVSS instance is created as well which holds all the global parameters that every participant needs to know.
 
 ```swift
+import PVSS
+import BigInt
+
 let secretMessage = "Correct horse battery staple."
 let secret = BigUInt(secretMessage.data(using: .utf8)!)
 
