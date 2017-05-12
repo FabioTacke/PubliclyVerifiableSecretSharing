@@ -16,11 +16,11 @@ public struct Polynomial {
     self.coefficients = coefficients
   }
   
-  public init(degree: Int, bitLength: Int) {
+  public init(degree: Int, bitLength: Int, q: BigUInt) {
     var coefficientList: [BigUInt] = []
     
     for _ in 0...degree {
-      coefficientList.append(BigUInt.randomInteger(withMaximumWidth: bitLength))
+      coefficientList.append(BigUInt.randomInteger(withMaximumWidth: bitLength) % q)
     }
     
    self.init(coefficients: coefficientList)

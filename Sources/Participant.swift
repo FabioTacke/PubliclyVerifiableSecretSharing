@@ -134,7 +134,7 @@ public class Participant {
   /// - Requires: `threshold` <= number of participants
   /// - Returns: The distribution bundle that is published so everyone (especially but not only the participants) can check the shares' integrity. Furthermore the participants extract their shares from it.
   public func distribute(secret: BigUInt, publicKeys: [BigUInt], threshold: Int) -> DistributionBundle {
-    let polynomial = Polynomial(degree: threshold - 1, bitLength: pvssInstance.length)
+    let polynomial = Polynomial(degree: threshold - 1, bitLength: pvssInstance.length, q: pvssInstance.q)
     let w = BigUInt.randomPrime(length: pvssInstance.length) % pvssInstance.q
     return distribute(secret: secret, publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
   }
