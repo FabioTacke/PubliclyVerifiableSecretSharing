@@ -25,38 +25,38 @@ class MathFunctionsTest: XCTestCase {
     
     // Positive value, remainder != 0
     var testValue: BigInt = 7919
-    XCTAssertEqual(BigInt.modulus(a: testValue, b: modulus), 896)
+    XCTAssertEqual(BigInt.modulus(testValue, modulus), 896)
     
     // Negative value, remainder != 0
     testValue = BigInt(abs: 7919, negative: true)
-    XCTAssertEqual(BigInt.modulus(a: testValue, b: modulus), 1445)
+    XCTAssertEqual(BigInt.modulus(testValue, modulus), 1445)
     
     // Positive value, remainder == 0
     testValue = 35115
-    XCTAssertEqual(BigInt.modulus(a: testValue, b: modulus), 0)
+    XCTAssertEqual(BigInt.modulus(testValue, modulus), 0)
     
     // Negative value, remainder == 0
     testValue = BigInt(abs: 35115, negative: true)
-    XCTAssertEqual(BigInt.modulus(a: testValue, b: modulus), 0)
+    XCTAssertEqual(BigInt.modulus(testValue, modulus), 0)
     
     // Modulus positive
     modulus = BigInt(abs: 2341, negative: true)
     
     // Positive value, remainder != 0
     testValue = 7919
-    XCTAssertEqual(BigInt.modulus(a: testValue, b: modulus), -1445)
+    XCTAssertEqual(BigInt.modulus(testValue, modulus), 896)
     
     // Negative value, remainder != 0
     testValue = BigInt(abs: 7919, negative: true)
-    XCTAssertEqual(BigInt.modulus(a: testValue, b: modulus), -896)
+    XCTAssertEqual(BigInt.modulus(testValue, modulus), 1445)
     
     // Positive value, remainder == 0
     testValue = 35115
-    XCTAssertEqual(BigInt.modulus(a: testValue, b: modulus), 0)
+    XCTAssertEqual(BigInt.modulus(testValue, modulus), 0)
     
     // Negative value, remainder == 0
     testValue = BigInt(abs: 35115, negative: true)
-    XCTAssertEqual(BigInt.modulus(a: testValue, b: modulus), 0)
+    XCTAssertEqual(BigInt.modulus(testValue, modulus), 0)
   }
   
   func testDLEQ() {
