@@ -29,11 +29,9 @@ public class Participant {
     self.init(pvssInstance: pvssInstance, privateKey: privateKey, publicKey: publicKey)
   }
   
-  /// Initializes a new participant. `length` bit numbers are used for all numbers and calculations. Default value is 256.
-  ///
-  /// - Parameter length: Number of bits used for all numbers and calculcations.
-  public convenience init(length: Int = 256) {
-    self.init(pvssInstance: PVSSInstance(length: length))
+  /// Initializes a new participant with the default PVSS instance.
+  public convenience init() {
+    self.init(pvssInstance: PVSSInstance())
   }
   
   
@@ -135,7 +133,7 @@ public class Participant {
   /// - Returns: The distribution bundle that is published so everyone (especially but not only the participants) can check the shares' integrity. Furthermore the participants extract their shares from it.
   public func distribute(secret: BigUInt, publicKeys: [BigUInt], threshold: Int) -> DistributionBundle {
     let polynomial = Polynomial(degree: threshold - 1, bitLength: pvssInstance.length, q: pvssInstance.q)
-    let w = BigUInt.randomPrime(length: pvssInstance.length) % pvssInstance.q
+    let w = BigUInt.randomIntegerLessThan(pvssInstance.q)
     return distribute(secret: secret, publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
   }
   

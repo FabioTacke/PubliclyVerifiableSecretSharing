@@ -20,7 +20,7 @@ public struct Polynomial {
     var coefficientList: [BigUInt] = []
     
     for _ in 0...degree {
-      coefficientList.append(BigUInt.randomInteger(withMaximumWidth: bitLength) % q)
+      coefficientList.append(BigUInt.randomIntegerLessThan(q))
     }
     
    self.init(coefficients: coefficientList)

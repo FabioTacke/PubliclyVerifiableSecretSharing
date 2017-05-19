@@ -9,7 +9,7 @@
 import XCTest
 import BigInt
 import CryptoSwift
-import PVSS
+@testable import PVSS
 
 class PVSSTest: XCTestCase {
   
@@ -36,6 +36,16 @@ class PVSSTest: XCTestCase {
     let checkPublicKey: BigUInt = BigUInt(148446388)
     
     XCTAssertEqual(publicKey, checkPublicKey)
+  }
+  
+  func testGeneratingPVSSParameters() {
+    let pvss = PVSSInstance(length: 32)
+    
+    XCTAssert(pvss.q.isPrime())
+    XCTAssert(pvss.g.isPrime())
+    XCTAssertEqual(pvss.g, (pvss.q-1).divided(by: 2).quotient)
+    
+    print("q: \(pvss.q), g: \(pvss.g), G: \(pvss.G)")
   }
   
   func testDistribution() {
@@ -126,8 +136,9 @@ class PVSSTest: XCTestCase {
     let secretMessage = "Correct horse battery staple."
     let secret = BigUInt(secretMessage.data(using: .utf8)!)
     
-    // Create PVSS Instance with default parameter length 256 bit
-    let dealer = Participant()
+    // Create default PVSS Instance for the dealer
+    let pvssInstance = PVSSInstance()
+    let dealer = Participant(pvssInstance: pvssInstance)
     
     // Participants p1, p2 and p3
     let p1 = Participant(pvssInstance: dealer.pvssInstance)
@@ -142,7 +153,7 @@ class PVSSTest: XCTestCase {
     XCTAssert(p2.pvssInstance.verify(distributionBundle: distributionBundle))
     XCTAssert(p3.pvssInstance.verify(distributionBundle: distributionBundle))
     
-    // Receivers extract extract (and submit) their shares
+    // Receivers extract (and submit) their shares
     guard let s1 = p1.extractShare(distributionBundle: distributionBundle, privateKey: p1.privateKey),
       let s2 = p2.extractShare(distributionBundle: distributionBundle, privateKey: p2.privateKey),
       let s3 = p3.extractShare(distributionBundle: distributionBundle, privateKey: p3.privateKey) else {
