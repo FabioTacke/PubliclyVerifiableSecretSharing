@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'PVSS'
-  s.version          = '1.0.3'
+  s.version          = '1.0.4'
   s.summary          = 'An implementation of Publicly Verifiably Secret Sharing (PVSS) in Swift.'
   s.description      = <<-DESC
 The library implements a PVSS scheme in Swift. The algorithm is based on "A Simple Publicly Verifiable Secret Sharing Scheme and its Application to Electronic Voting" by Berry Schoenmakers.

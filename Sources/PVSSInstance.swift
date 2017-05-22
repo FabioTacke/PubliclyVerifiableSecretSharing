@@ -11,11 +11,11 @@ import CryptoSwift
 
 /// A PVSSInstance represents an instance of a publicly verifiable secret sharing scheme, i.e. a set of parameters used for all the operations during the secret sharing process like distribution of the shared secret, extraction of the shares, reconstruction of the secret and verification of all the received messages.
 public struct PVSSInstance {
-  let q: BigUInt
-  let g: BigUInt
-  let G: BigUInt
+  public let q: BigUInt
+  public let g: BigUInt
+  public let G: BigUInt
   
-  let length: Int
+  public let length: Int
   
   public init(length: Int, q: BigUInt, g: BigUInt, G: BigUInt) {
     self.length = length
