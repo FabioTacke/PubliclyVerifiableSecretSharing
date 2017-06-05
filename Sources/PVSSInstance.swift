@@ -30,6 +30,9 @@ public struct PVSSInstance {
   public init(length: Int) {
     // Find safe prime
     var q = BigUInt.randomInteger(withExactWidth: length)
+    if q % 2 == 0 {
+      q -= 1
+    }
     var sophieGermainCandidate: BigUInt
     
     repeat {

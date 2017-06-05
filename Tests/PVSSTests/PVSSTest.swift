@@ -137,7 +137,7 @@ class PVSSTest: XCTestCase {
     let secret = BigUInt(secretMessage.data(using: .utf8)!)
     
     // Create default PVSS Instance for the dealer
-    let pvssInstance = PVSSInstance()
+    let pvssInstance = PVSSInstance(length: 128)
     let dealer = Participant(pvssInstance: pvssInstance)
     
     // Participants p1, p2 and p3
