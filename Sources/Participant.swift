@@ -43,7 +43,7 @@ public class Participant {
   ///   - threshold: The number of shares that is needed in order to reconstruct the secret. It must not be greater than the total number of participants.
   ///   - polynomial: The polynomial which is going to be used to produce sampling points which represent the shares. Those sampling points allow the receiving participants to reconstruct the polynomial and with it the secret. The degree of the polynomial must be `threshold`-1.
   ///   - w: An arbitrary chosen value needed for creating the proof that the shares in the distribution bundle are consistent.
-  /// - Requires: 
+  /// - Requires:
   ///   - `threshold` <= number of participants
   ///   - degree of polynomial = `threshold` - 1
   /// - Returns: The distribution bundle that is published so everyone (especially but not only the participants) can check the shares' integrity. Furthermore the participants extract their shares from it.
@@ -123,6 +123,125 @@ public class Participant {
     return DistributionBundle(commitments: commitments, positions: positions, shares: shares, publicKeys: publicKeys, challenge: challengeInt, responses: responses, U: U)
   }
   
+  /// Experimental parallelized calculation of distribute method.
+  public func distributeParallelized(secret: BigUInt, publicKeys: [BigUInt], threshold: Int, polynomial: Polynomial, w: BigUInt) -> DistributionBundle {
+    assert(threshold <= publicKeys.count)
+    
+    // Data the distribution bundle is going to be consisting of
+    var commitments: [BigUInt] = []
+    var positions: [BigUInt: Int] = [:]
+    var X: [BigUInt: BigUInt] = [:]
+    var shares: [BigUInt: BigUInt] = [:]
+    var challenge = SHA2(variant: .sha256)
+    
+    // Temp values
+    var samplingPoints: [BigUInt: BigUInt] = [:]
+    var a: [BigUInt: (BigUInt, BigUInt)] = [:]
+    var dleq_w: [BigUInt: BigUInt] = [:]
+    var position: Int = 1
+    
+    // Calculate commitments C_j
+    let commitmentDispatchQueue = DispatchQueue(label: "commitmentDispatchQueue", attributes: .concurrent)
+    let commitmentDispatchGroup = DispatchGroup()
+    
+    var tempCommitments: [Int: BigUInt] = [:]
+    for j in 0..<threshold {
+      commitmentDispatchGroup.enter()
+      commitmentDispatchQueue.async {
+        tempCommitments[j] = self.pvssInstance.g.power(polynomial.coefficients[j], modulus: self.pvssInstance.q)
+        commitmentDispatchGroup.leave()
+      }
+    }
+    
+    commitmentDispatchGroup.wait()
+    
+    for j in 0..<threshold {
+      commitments.append(tempCommitments[j]!)
+    }
+    
+    // Calculate X_i
+    for key in publicKeys {
+      positions[key] = position
+      let samplingPoint = polynomial.getValue(x: BigUInt(position)) % (self.pvssInstance.q - 1)
+      samplingPoints[key] = samplingPoint
+      
+      var x: BigUInt = 1
+      var exponent: BigUInt = 1
+      for j in 0...threshold - 1 {
+        x = (x * commitments[j].power(exponent, modulus: self.pvssInstance.q)) % self.pvssInstance.q
+        exponent = (exponent * BigUInt(position)) % (self.pvssInstance.q - 1)
+      }
+      X[key] = x
+      position += 1
+    }
+    
+    let shareDispatchQueue = DispatchQueue(label: "asyncQueue", attributes: .concurrent)
+    let shareDispatchGroup = DispatchGroup()
+    
+    for key in publicKeys {
+      shareDispatchGroup.enter()
+      shareDispatchQueue.async {
+        let samplingPoint = samplingPoints[key]!
+        let x = X[key]!
+        
+        // Calculate share Y_i
+        let share = key.power(samplingPoint, modulus: self.pvssInstance.q)
+        shares[key] = share
+        
+        // Calculate a_1i, a_2i (DLEQ)
+        let dleq = DLEQ(g1: self.pvssInstance.g, h1: x, g2: key, h2: share, length: self.pvssInstance.length, q: self.pvssInstance.q, alpha: samplingPoint, w: w)
+        dleq_w[key] = dleq.w
+        a[key] = (dleq.a1, dleq.a2)
+        shareDispatchGroup.leave()
+      }
+    }
+    
+    shareDispatchGroup.wait()
+    
+    for key in publicKeys {
+      let x = X[key]!
+      let share = shares[key]!
+      let dleq = a[key]!
+      
+      // Update challenge hash
+      let _ = try! challenge.update(withBytes: x.description.data(using: .utf8)!)
+      let _ = try! challenge.update(withBytes: share.description.data(using: .utf8)!)
+      let _ = try! challenge.update(withBytes: dleq.0.description.data(using: .utf8)!)
+      let _ = try! challenge.update(withBytes: dleq.1.description.data(using: .utf8)!)
+    }
+    
+    let challengeHash = try! challenge.finish().toHexString()
+    let challengeInt = BigUInt(challengeHash, radix: 16)! % (pvssInstance.q - 1)
+    
+    // Calculate responses r_i
+    let responseDispatchQueue = DispatchQueue(label: "responseQueue", attributes: .concurrent)
+    let responseDispatchGroup = DispatchGroup()
+    
+    var responses: [BigUInt: BigUInt] = [:]
+    for key in publicKeys {
+      responseDispatchGroup.enter()
+      responseDispatchQueue.async {
+        if let x = X[key], let share = shares[key], let samplingPoint = samplingPoints[key], let w = dleq_w[key] {
+          var dleq = DLEQ(g1: self.pvssInstance.g, h1: x, g2:key, h2: share, length: self.pvssInstance.length, q: self.pvssInstance.q, alpha: samplingPoint, w: w)
+          dleq.c = challengeInt
+          responses[key] = dleq.r!
+        }
+        responseDispatchGroup.leave()
+      }
+    }
+    
+    responseDispatchGroup.wait()
+    
+    // Calculate U = sigma XOR SHA256(G^s)
+    // sigma: secret to share
+    let sharedValue = pvssInstance.G.power(polynomial.getValue(x: 0) % (pvssInstance.q - 1), modulus: pvssInstance.q)
+    let sharedValueHash = sharedValue.description.sha256()
+    let hashInt = BigUInt(sharedValueHash, radix: 16)! % (pvssInstance.q)
+    let U = secret ^ hashInt
+    
+    return DistributionBundle(commitments: commitments, positions: positions, shares: shares, publicKeys: publicKeys, challenge: challengeInt, responses: responses, U: U)
+  }
+  
   /// Takes a secret as input and returns the distribution bundle which is going to be submitted to all the participants the secret is going to be shared with. Those participants are specified by their public keys. They use the distribution bundle to verify that the shares are correct (without learning anything about the shares that are not supposed to be decrypted by them) and extract their encrypted shares. In fact, the distribution bundle can be published to everyone allowing even external parties to verify the integrity of the shares.
   ///
   /// - Parameters:
@@ -135,6 +254,13 @@ public class Participant {
     let polynomial = Polynomial(degree: threshold - 1, bitLength: pvssInstance.length, q: pvssInstance.q)
     let w = BigUInt.randomIntegerLessThan(pvssInstance.q)
     return distribute(secret: secret, publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
+  }
+  
+  /// Experimental parallelized calculation of distribute method.
+  public func distributeParallelized(secret: BigUInt, publicKeys: [BigUInt], threshold: Int) -> DistributionBundle {
+    let polynomial = Polynomial(degree: threshold - 1, bitLength: pvssInstance.length, q: pvssInstance.q)
+    let w = BigUInt.randomIntegerLessThan(pvssInstance.q)
+    return distributeParallelized(secret: secret, publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
   }
   
   /// Extracts the share from a given distribution bundle that is addressed to the calling participant. The extracted share is bundled with a proof which allows the other participants to verify the share's correctness.

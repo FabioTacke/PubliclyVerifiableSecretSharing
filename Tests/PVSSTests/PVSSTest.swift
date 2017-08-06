@@ -71,6 +71,19 @@ class PVSSTest: XCTestCase {
     }
   }
   
+  func testParallelizedDistribution() {
+    let pvssInstance = PVSSInstance()
+    let dealer = Participant(pvssInstance: pvssInstance)
+    var pubKeys: [BigUInt] = []
+    for _ in 0..<3 {
+      pubKeys.append(pvssInstance.generatePublicKey(privateKey: pvssInstance.generatePrivateKey()))
+    }
+    let secret = BigUInt.randomInteger(withExactWidth: 512)
+    let distributionBundle = dealer.distributeParallelized(secret: secret, publicKeys: pubKeys, threshold: 3)
+    
+    XCTAssert(pvssInstance.verify(distributionBundle: distributionBundle))
+  }
+  
   func testDistributionBundleVerification() {
     let distributionBundle = getDistributionBundle()
     
