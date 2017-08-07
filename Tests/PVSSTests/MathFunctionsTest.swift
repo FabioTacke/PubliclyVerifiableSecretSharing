@@ -10,6 +10,7 @@ import XCTest
 import BigInt
 import CryptoSwift
 @testable import PVSS
+import Bignum
 
 class MathFunctionsTest: XCTestCase {
   
@@ -19,80 +20,40 @@ class MathFunctionsTest: XCTestCase {
     }
   }
   
-  func testModulusCalculation() {
-    // Modulus positive
-    var modulus: BigInt = 2341
-    
-    // Positive value, remainder != 0
-    var testValue: BigInt = 7919
-    XCTAssertEqual(BigInt.modulus(testValue, modulus), 896)
-    
-    // Negative value, remainder != 0
-    testValue = BigInt(abs: 7919, negative: true)
-    XCTAssertEqual(BigInt.modulus(testValue, modulus), 1445)
-    
-    // Positive value, remainder == 0
-    testValue = 35115
-    XCTAssertEqual(BigInt.modulus(testValue, modulus), 0)
-    
-    // Negative value, remainder == 0
-    testValue = BigInt(abs: 35115, negative: true)
-    XCTAssertEqual(BigInt.modulus(testValue, modulus), 0)
-    
-    // Modulus positive
-    modulus = BigInt(abs: 2341, negative: true)
-    
-    // Positive value, remainder != 0
-    testValue = 7919
-    XCTAssertEqual(BigInt.modulus(testValue, modulus), 896)
-    
-    // Negative value, remainder != 0
-    testValue = BigInt(abs: 7919, negative: true)
-    XCTAssertEqual(BigInt.modulus(testValue, modulus), 1445)
-    
-    // Positive value, remainder == 0
-    testValue = 35115
-    XCTAssertEqual(BigInt.modulus(testValue, modulus), 0)
-    
-    // Negative value, remainder == 0
-    testValue = BigInt(abs: 35115, negative: true)
-    XCTAssertEqual(BigInt.modulus(testValue, modulus), 0)
-  }
-  
   func testDLEQ() {
-    let g1: BigUInt = 8443
-    let h1: BigUInt = 531216
-    let g2: BigUInt = 1299721
-    let h2: BigUInt = 14767239
+    let g1: Bignum = 8443
+    let h1: Bignum = 531216
+    let g2: Bignum = 1299721
+    let h2: Bignum = 14767239
 
-    let w: BigUInt = 81647
-    let q: BigUInt = 15487469
-    let alpha: BigUInt = 163027
+    let w: Bignum = 81647
+    let q: Bignum = 15487469
+    let alpha: Bignum = 163027
     let length: Int = 64
     
     var dleq: DLEQ = DLEQ(g1: g1, h1: h1, g2: g2, h2: h2, length: length, q: q, alpha: alpha, w: w)
     
-    let a1: BigUInt = 14735247
-    let a2: BigUInt = 5290058
+    let a1: Bignum = 14735247
+    let a2: Bignum = 5290058
     
     XCTAssertEqual(a1, dleq.a1)
     XCTAssertEqual(a2, dleq.a2)
     
-    let c: BigUInt = 127997
+    let c: Bignum = 127997
     dleq.c = c
     
-    let r: BigUInt = 10221592
+    let r: Bignum = 10221592
     
     XCTAssertEqual(r, dleq.r!)
     
-    XCTAssertEqual(a1, (dleq.g1.power(dleq.r!, modulus: dleq.q) * h1.power(dleq.c!, modulus: dleq.q)) % q)
-    XCTAssertEqual(a2, (dleq.g2.power(dleq.r!, modulus: dleq.q) * h2.power(dleq.c!, modulus: dleq.q)) % q)
+    XCTAssertEqual(a1, (mod_exp(dleq.g1, dleq.r!, dleq.q) * mod_exp(h1, dleq.c!, dleq.q)) % q)
+    XCTAssertEqual(a2, (mod_exp(dleq.g2, dleq.r!, dleq.q) * mod_exp(h2, dleq.c!, dleq.q)) % q)
   }
   
   func testPolynomial() {
-    let q: BigUInt = 15486967
-    let coefficients: [BigUInt] = [105211, 1548877	, 892134, 3490857, 324, 14234735]
-    let x: BigUInt = 278
+    let q: Bignum = 15486967
+    let coefficients: [Bignum] = [105211, 1548877	, 892134, 3490857, 324, 14234735]
+    let x: Bignum = 278
     
     let polynomial = Polynomial(coefficients: coefficients)
 
@@ -100,8 +61,8 @@ class MathFunctionsTest: XCTestCase {
   }
   
   func testHashing() {
-    let value1: BigUInt = BigUInt("43589072349864890574839")!
-    let value2: BigUInt = BigUInt("14735247304952934566")!
+    let value1: Bignum = Bignum("43589072349864890574839")
+    let value2: Bignum = Bignum("14735247304952934566")
     
     var digest = SHA2(variant: .sha256)
     let _ = try! digest.update(withBytes: value1.description.data(using: .utf8)!)
@@ -109,7 +70,7 @@ class MathFunctionsTest: XCTestCase {
     let result = try! digest.finish()
     
     XCTAssertEqual(result.toHexString(), "e25e5b7edf4ea66e5238393fb4f183e0fc1593c69a522f9255a51bd0bc2b7ba7")
-    XCTAssertEqual(BigUInt(result.toHexString(), radix: 16), BigUInt(stringLiteral: "102389418883295205726805934198606438410316463205994911160958467170744727731111"))
+    XCTAssertEqual(Bignum(hex: result.toHexString()), Bignum("102389418883295205726805934198606438410316463205994911160958467170744727731111"))
   }
   
   func testXor() {

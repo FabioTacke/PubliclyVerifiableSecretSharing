@@ -23,10 +23,10 @@ extension BigUInt {
   }
 }
 
-extension BigInt {
-  
-  public static func modulus(_ a: BigInt,_ b: BigInt) -> BigUInt {
-    let remainder = a.abs % b.abs
-    return a.negative && !remainder.isEmpty ? b.abs - remainder : remainder
-  }
-}
+//extension BigInt {
+//  
+//  public static func modulus(_ a: BigInt,_ b: BigInt) -> BigUInt {
+//    let remainder = a.abs % b.abs
+//    return a.negative && !remainder.isEmpty ? b.abs - remainder : remainder
+//  }
+//}

@@ -8,28 +8,30 @@
 
 import Foundation
 import BigInt
+import Bignum
 
 public struct Polynomial {
-  let coefficients: [BigUInt]
+  let coefficients: [Bignum]
   
-  public init(coefficients: [BigUInt]) {
+  public init(coefficients: [Bignum]) {
     self.coefficients = coefficients
   }
   
-  public init(degree: Int, bitLength: Int, q: BigUInt) {
-    var coefficientList: [BigUInt] = []
+  public init(degree: Int, bitLength: Int, q: Bignum) {
+    var coefficientList: [Bignum] = []
     
     for _ in 0...degree {
-      coefficientList.append(BigUInt.randomIntegerLessThan(q))
+      let threshold = BigUInt(q.description)!
+      coefficientList.append(Bignum(BigUInt.randomIntegerLessThan(threshold).description))
     }
     
    self.init(coefficients: coefficientList)
   }
   
   // Calculate p(x)
-  public func getValue(x: BigUInt) -> BigUInt {
-    var result: BigUInt = coefficients[0]
-    var temp: BigUInt = 1
+  public func getValue(x: Bignum) -> Bignum {
+    var result = coefficients[0]
+    var temp: Bignum = 1
     
     for i in 1..<coefficients.count {
       temp = (temp * x)

@@ -12,10 +12,17 @@ Thus PVSS can be used to share a secret among a group of participants so that ei
 ## Installation
 
 ### Swift Package Manager
-`.Package(url: "https://github.com/FabioTacke/PubliclyVerifiableSecretSharing.git", majorVersion: 1)`
+`.Package(url: "https://github.com/FabioTacke/PubliclyVerifiableSecretSharing.git", majorVersion: 2)`
 
-### CocoaPods
+### CocoaPods (version 2 not supported yet)
 `pod 'PVSS', '~> 1.0'`
+
+## Build settings
+Since version 2.0.0 PVSS uses GMP for speeding up the calculations. If you don't have GMP installed there's a compiled GMP library version 6.1.2 included. However you need to provide the compiler and the linker with the information where to find the GMP header file and the library. Example:
+
+`swift [build | test] -Xcc -Lgmp/include -Xlinker -Lgmp/lib`
+
+You can replace those paths if you already have GMP installed.
 
 ## Usage
 This section will guide you through the basic steps taken in the PVSS scheme.
@@ -26,9 +33,10 @@ At first we convert our secret message into a numeric value if necessary. When c
 ```swift
 import PVSS
 import BigInt
+import Bignum
 
 let secretMessage = "Correct horse battery staple."
-let secret = BigUInt(secretMessage.data(using: .utf8)!)
+let secret = Bignum(data: secretMessage.data(using: .utf8)!)
 
 // Create PVSS Instance.
 let dealer = Participant()
@@ -59,7 +67,7 @@ let s1 = p1.extractShare(distributionBundle: distributionBundle, privateKey: p1.
 // p1, p2 and p3 exchange their shares.
 // ...
 
-// p1 verifies the share received from p2. [In fact, everybody verifies every received share.]
+// p1 verifies the share received from p2. [Actually everybody verifies every received share.]
 assert(p1.pvssInstance.verify(shareBundle: s2, encryptedShare: distributionBundle.shares[p2.publicKey]!))
 ```
 
@@ -71,6 +79,15 @@ Once a participant collected at least `threshold` shares the secret can be recon
 let shareBundles = [s1, s2, s3]
 let r1 = p1.pvssInstance.reconstruct(shareBundles: shareBundles, distributionBundle: distributionBundle)!
 
-print(String(data: r1.serialize(), encoding: .utf8)!)
+String(data: BigUInt(r1.description)!.serialize(), encoding: .utf8)!
 // Correct horse battery staple.
 ```
+
+## Licenses
+PVSS makes use of the following third party libraries.
+
+BigInt - Copyright (c) 2016-2017 Károly Lőrentey (MIT)
+
+CryptoSwift - Copyright (c) 2014-2017 Marcin Krzyżanowski (zlib)
+
+GMP - Copyright (c) 2007-2017 Free Software Foundation, Inc. (GNU LGPL)

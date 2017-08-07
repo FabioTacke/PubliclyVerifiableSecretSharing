@@ -8,39 +8,40 @@
 
 import Foundation
 import BigInt
+import Bignum
 
 public struct ShareBundle {
-  public let publicKey: BigUInt
-  public let share: BigUInt
-  public let challenge: BigUInt
-  public let response: BigUInt
+  public let publicKey: Bignum
+  public let share: Bignum
+  public let challenge: Bignum
+  public let response: Bignum
   
-  public init(publicKey: BigUInt, share: BigUInt, challenge: BigUInt, response: BigUInt)
-  {
-    self.publicKey = publicKey
-    self.share = share
-    self.challenge = challenge
-    self.response = response
-  }
+//  public init(publicKey: Bignum, share: Bignum, challenge: Bignum, response: Bignum)
+//  {
+//    self.publicKey = publicKey
+//    self.share = share
+//    self.challenge = challenge
+//    self.response = response
+//  }
 }
 
 public struct DistributionBundle {
-  public let commitments: [BigUInt]
-  public let positions: [BigUInt: Int]
-  public let shares: [BigUInt: BigUInt]
-  public let publicKeys: [BigUInt]
-  public let challenge: BigUInt
-  public let responses: [BigUInt: BigUInt]
-  public let U: BigUInt
+  public let commitments: [Bignum]
+  public let positions: [Bignum: Int]
+  public let shares: [Bignum: Bignum]
+  public let publicKeys: [Bignum]
+  public let challenge: Bignum
+  public let responses: [Bignum: Bignum]
+  public let U: Bignum
   
-  public init(commitments: [BigUInt], positions: [BigUInt: Int], shares: [BigUInt: BigUInt], publicKeys: [BigUInt], challenge: BigUInt, responses: [BigUInt: BigUInt], U: BigUInt) {
-    self.commitments = commitments
-    self.positions = positions
-    self.shares = shares
-    self.publicKeys = publicKeys
-    self.challenge = challenge
-    self.responses = responses
-    self.U = U
-  }
+//  public init(commitments: [BigUInt], positions: [BigUInt: Int], shares: [BigUInt: BigUInt], publicKeys: [BigUInt], challenge: BigUInt, responses: [BigUInt: BigUInt], U: BigUInt) {
+//    self.commitments = commitments
+//    self.positions = positions
+//    self.shares = shares
+//    self.publicKeys = publicKeys
+//    self.challenge = challenge
+//    self.responses = responses
+//    self.U = U
+//  }
   
 }
