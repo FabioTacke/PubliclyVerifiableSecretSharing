@@ -7,7 +7,6 @@
 //
 
 import Foundation
-
 import BigInt
 
 extension BigUInt {
@@ -22,11 +21,3 @@ extension BigUInt {
     return random
   }
 }
-
-//extension BigInt {
-//  
-//  public static func modulus(_ a: BigInt,_ b: BigInt) -> BigUInt {
-//    let remainder = a.abs % b.abs
-//    return a.negative && !remainder.isEmpty ? b.abs - remainder : remainder
-//  }
-//}

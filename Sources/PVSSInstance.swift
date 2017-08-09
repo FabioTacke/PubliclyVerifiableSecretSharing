@@ -6,6 +6,7 @@
 //
 //
 
+import Foundation
 import BigInt
 import Bignum
 import CryptoSwift
@@ -176,43 +177,54 @@ public struct PVSSInstance {
       shares[position] = shareBundle.share
     }
     
-    var secret: BigUInt = 1
+    var secret: Bignum = 1
+    let values = Array(shares.keys)
+    
+    let dispatchGroup = DispatchGroup()
+    let dispatchSemaphore = DispatchSemaphore(value: 1)
     
     for (position, share) in shares {
-      var exponent: Bignum = 1
-      let lagrangeCoefficient = PVSSInstance.lagrangeCoefficient(i: position, values: Array(shares.keys))
-      
-      if lagrangeCoefficient.numerator % lagrangeCoefficient.denominator == 0 {
-        // Lagrange coefficient is an integer
-        exponent = Bignum(lagrangeCoefficient.numerator / abs(lagrangeCoefficient.denominator))
-      } else {
-        // Lagrange coefficient is a proper fraction
-        // Cancel fraction if possible
-        var numerator = BigUInt(lagrangeCoefficient.numerator)
-        var denominator = BigUInt(abs(lagrangeCoefficient.denominator))
-        let gcd = BigUInt.gcd(numerator, denominator)
-        numerator = numerator.divided(by: gcd).quotient
-        denominator = denominator.divided(by: gcd).quotient
+      dispatchGroup.enter()
+      DispatchQueue.global().async {
+        var exponent = Bignum(1)
+        let lagrangeCoefficient = PVSSInstance.lagrangeCoefficient(i: position, values: values)
         
-        let q1 = BigUInt((q - 1).description)!
-        if let inverseDenominator = denominator.inverse(q1) {
-          exponent = Bignum(((numerator * inverseDenominator) % q1).description)
+        if lagrangeCoefficient.numerator % lagrangeCoefficient.denominator == 0 {
+          // Lagrange coefficient is an integer
+          exponent = lagrangeCoefficient.numerator / lagrangeCoefficient.denominator.abs
         } else {
-          // Denominator of Lagrange coefficient fraction does not have an inverse. Share cannot be processed.
-          return nil
+          // Lagrange coefficient is a proper fraction
+          // Cancel fraction if possible
+          var numerator = BigUInt(lagrangeCoefficient.numerator.description)!
+          var denominator = BigUInt(lagrangeCoefficient.denominator.abs.description)!
+          let gcd = BigUInt.gcd(numerator, denominator)
+          numerator = numerator.divided(by: gcd).quotient
+          denominator = denominator.divided(by: gcd).quotient
+          
+          let q1 = BigUInt((self.q - 1).description)!
+          if let inverseDenominator = denominator.inverse(q1) {
+            exponent = Bignum(((numerator * inverseDenominator) % q1).description)
+          } else {
+            print("ERROR: Denominator of Lagrange coefficient fraction does not have an inverse. Share cannot be processed.")
+          }
         }
-      }
-      var factor = BigUInt((mod_exp(share, exponent, q)).description)!
-      if lagrangeCoefficient.numerator * lagrangeCoefficient.denominator < 0 {
-        // Lagrange coefficient was negative. S^(-lambda) = 1/(S^lambda)
-        if let inverseFactor = factor.inverse(BigUInt(q.description)!) {
-          factor = inverseFactor
-        } else {
-          return nil
+        var factor = BigUInt((mod_exp(share, exponent, self.q)).description)!
+        if lagrangeCoefficient.numerator * lagrangeCoefficient.denominator < 0 {
+          // Lagrange coefficient was negative. S^(-lambda) = 1/(S^lambda)
+          if let inverseFactor = factor.inverse(BigUInt(self.q.description)!) {
+            factor = inverseFactor
+          } else {
+            print("ERROR: Lagrange coefficient was negative and does not have an inverse. Share cannot be processed.")
+          }
         }
+        dispatchSemaphore.wait()
+        secret = (secret * Bignum(factor.description)) % self.q
+        dispatchSemaphore.signal()
+        dispatchGroup.leave()
       }
-      secret = (secret * factor) % BigUInt(q.description)!
     }
+    
+    dispatchGroup.wait()
     
     // Recover the secret sigma = H(G^s) XOR U
     let sharedSecretHash = secret.description.sha256()
@@ -222,18 +234,18 @@ public struct PVSSInstance {
     return Bignum(decryptedSecret.description)
   }
   
-  public static func lagrangeCoefficient(i: Int, values: [Int]) -> (numerator: Int, denominator: Int) {
+  public static func lagrangeCoefficient(i: Int, values: [Int]) -> (numerator: Bignum, denominator: Bignum) {
     if !values.contains(i) {
       return (0, 1)
     }
     
-    var numerator: Int = 1
-    var denominator: Int = 1
+    var numerator: Bignum = 1
+    var denominator: Bignum = 1
     
     for j in 1...values.max()! {
       if j != i && values.contains(j) {
-        numerator *= j
-        denominator *= (j-i)
+        numerator = numerator * j
+        denominator = denominator * (j-i)
       }
     }
     
