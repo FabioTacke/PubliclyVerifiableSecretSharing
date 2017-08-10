@@ -163,7 +163,7 @@ public struct PVSSInstance {
   ///   - distributionBundle: The distribution bundle published by the dealer.
   ///
   /// - Returns: Returns the secret if the reconstruction process succeeded or `nil` if the reconstruction is not possible for the given set of shares due to mathematical limitations.
-  public func reconstruct(shareBundles: [ShareBundle], distributionBundle: DistributionBundle) -> Bignum? {
+  public func reconstructParallelized(shareBundles: [ShareBundle], distributionBundle: DistributionBundle) -> Bignum? {
     if shareBundles.count < distributionBundle.commitments.count {
       return nil
     }
@@ -225,6 +225,66 @@ public struct PVSSInstance {
     }
     
     dispatchGroup.wait()
+    
+    // Recover the secret sigma = H(G^s) XOR U
+    let sharedSecretHash = secret.description.sha256()
+    let hashInt = BigUInt(sharedSecretHash, radix: 16)! % BigUInt(q.description)!
+    let decryptedSecret = hashInt ^ BigUInt(distributionBundle.U.description)!
+    
+    return Bignum(decryptedSecret.description)
+  }
+  
+  public func reconstruct(shareBundles: [ShareBundle], distributionBundle: DistributionBundle) -> Bignum? {
+    if shareBundles.count < distributionBundle.commitments.count {
+      return nil
+    }
+    
+    var shares: [Int: Bignum] = [:]
+    
+    for shareBundle in shareBundles {
+      guard let position = distributionBundle.positions[shareBundle.publicKey] else {
+        return nil
+      }
+      shares[position] = shareBundle.share
+    }
+    
+    var secret: Bignum = 1
+    let values = Array(shares.keys)
+    
+    for (position, share) in shares {
+      var exponent = Bignum(1)
+      let lagrangeCoefficient = PVSSInstance.lagrangeCoefficient(i: position, values: values)
+      
+      if lagrangeCoefficient.numerator % lagrangeCoefficient.denominator == 0 {
+        // Lagrange coefficient is an integer
+        exponent = lagrangeCoefficient.numerator / lagrangeCoefficient.denominator.abs
+      } else {
+        // Lagrange coefficient is a proper fraction
+        // Cancel fraction if possible
+        var numerator = BigUInt(lagrangeCoefficient.numerator.description)!
+        var denominator = BigUInt(lagrangeCoefficient.denominator.abs.description)!
+        let gcd = BigUInt.gcd(numerator, denominator)
+        numerator = numerator.divided(by: gcd).quotient
+        denominator = denominator.divided(by: gcd).quotient
+        
+        let q1 = BigUInt((self.q - 1).description)!
+        if let inverseDenominator = denominator.inverse(q1) {
+          exponent = Bignum(((numerator * inverseDenominator) % q1).description)
+        } else {
+          print("ERROR: Denominator of Lagrange coefficient fraction does not have an inverse. Share cannot be processed.")
+        }
+      }
+      var factor = BigUInt((mod_exp(share, exponent, self.q)).description)!
+      if lagrangeCoefficient.numerator * lagrangeCoefficient.denominator < 0 {
+        // Lagrange coefficient was negative. S^(-lambda) = 1/(S^lambda)
+        if let inverseFactor = factor.inverse(BigUInt(self.q.description)!) {
+          factor = inverseFactor
+        } else {
+          print("ERROR: Lagrange coefficient was negative and does not have an inverse. Share cannot be processed.")
+        }
+      }
+      secret = (secret * Bignum(factor.description)) % self.q
+    }
     
     // Recover the secret sigma = H(G^s) XOR U
     let sharedSecretHash = secret.description.sha256()

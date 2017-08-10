@@ -11,25 +11,25 @@ import BigInt
 import Bignum
 
 public struct DLEQ {
-  let g1: Bignum
-  let h1: Bignum
-  let g2: Bignum
-  let h2: Bignum
+  public let g1: Bignum
+  public let h1: Bignum
+  public let g2: Bignum
+  public let h2: Bignum
   
-  let w: Bignum
-  let q: Bignum
-  let alpha: Bignum
-  var c: Bignum?
+  public let w: Bignum
+  public let q: Bignum
+  public let alpha: Bignum
+  public var c: Bignum?
   
-  var a1: Bignum {
+  public var a1: Bignum {
     return mod_exp(g1, w, q)
   }
   
-  var a2: Bignum {
+  public var a2: Bignum {
     return mod_exp(g2, w, q)
   }
   
-  var r: Bignum? {
+  public var r: Bignum? {
     if let c = c {
       return Bignum.modulus(w - (alpha * c), q - 1)
     } else {
@@ -37,7 +37,7 @@ public struct DLEQ {
     }
   }
   
-  init (g1: Bignum, h1: Bignum, g2: Bignum, h2: Bignum, length: Int, q: Bignum, alpha: Bignum, w: Bignum) {
+  public init (g1: Bignum, h1: Bignum, g2: Bignum, h2: Bignum, length: Int, q: Bignum, alpha: Bignum, w: Bignum) {
     self.g1 = g1
     self.h1 = h1
     self.g2 = g2
@@ -48,7 +48,7 @@ public struct DLEQ {
     self.alpha = alpha
   }
   
-  init(g1: Bignum, h1: Bignum, g2: Bignum, h2: Bignum, length: Int, q: Bignum, alpha: Bignum) {
+  public init(g1: Bignum, h1: Bignum, g2: Bignum, h2: Bignum, length: Int, q: Bignum, alpha: Bignum) {
     let w = Bignum(BigUInt.randomPrime(length: length).description) % q
     self.init(g1: g1, h1: h1, g2: g2, h2: h2, length: length, q: q, alpha: alpha, w: w)
   }

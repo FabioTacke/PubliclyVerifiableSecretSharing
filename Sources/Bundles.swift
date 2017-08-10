@@ -16,13 +16,13 @@ public struct ShareBundle {
   public let challenge: Bignum
   public let response: Bignum
   
-//  public init(publicKey: Bignum, share: Bignum, challenge: Bignum, response: Bignum)
-//  {
-//    self.publicKey = publicKey
-//    self.share = share
-//    self.challenge = challenge
-//    self.response = response
-//  }
+  public init(publicKey: Bignum, share: Bignum, challenge: Bignum, response: Bignum)
+  {
+    self.publicKey = publicKey
+    self.share = share
+    self.challenge = challenge
+    self.response = response
+  }
 }
 
 public struct DistributionBundle {
@@ -34,14 +34,13 @@ public struct DistributionBundle {
   public let responses: [Bignum: Bignum]
   public let U: Bignum
   
-//  public init(commitments: [BigUInt], positions: [BigUInt: Int], shares: [BigUInt: BigUInt], publicKeys: [BigUInt], challenge: BigUInt, responses: [BigUInt: BigUInt], U: BigUInt) {
-//    self.commitments = commitments
-//    self.positions = positions
-//    self.shares = shares
-//    self.publicKeys = publicKeys
-//    self.challenge = challenge
-//    self.responses = responses
-//    self.U = U
-//  }
-  
+  public init(commitments: [Bignum], positions: [Bignum: Int], shares: [Bignum: Bignum], publicKeys: [Bignum], challenge: Bignum, responses: [Bignum: Bignum], U: Bignum) {
+    self.commitments = commitments
+    self.positions = positions
+    self.shares = shares
+    self.publicKeys = publicKeys
+    self.challenge = challenge
+    self.responses = responses
+    self.U = U
+  }
 }

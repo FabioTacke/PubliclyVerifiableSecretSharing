@@ -9,7 +9,7 @@
 import XCTest
 import BigInt
 import CryptoSwift
-@testable import PVSS
+import PVSS
 import Bignum
 
 class MathFunctionsTest: XCTestCase {

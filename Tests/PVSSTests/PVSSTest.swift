@@ -10,7 +10,7 @@ import XCTest
 import BigInt
 import Bignum
 import CryptoSwift
-@testable import PVSS
+import PVSS
 
 class PVSSTest: XCTestCase {
   
@@ -109,7 +109,7 @@ class PVSSTest: XCTestCase {
     XCTAssertEqual(reconstructedSecret, secret)
   }
   
-  func testReconstructionPerformance() {
+  func testSerialReconstructionPerformance() {
     let pvss = PVSSInstance()
     let dealer = Participant(pvssInstance: pvss)
     let keyCount = 20
@@ -126,6 +126,26 @@ class PVSSTest: XCTestCase {
     let shareBundles = participants.map { $0.extractShare(distributionBundle: distributionBundle, privateKey: $0.privateKey)! }
     measure {
       let _ = pvss.reconstruct(shareBundles: shareBundles, distributionBundle: distributionBundle)
+    }
+  }
+  
+  func testParallelReconstructionPerformance() {
+    let pvss = PVSSInstance()
+    let dealer = Participant(pvssInstance: pvss)
+    let keyCount = 20
+    let keyPairs: [(privateKey: Bignum, publicKey: Bignum)] = pvssKeyPairs.reduce([]) { (previouskeyPairs, keyPair) in
+      var keyPairs = previouskeyPairs
+      if keyPairs.count < keyCount {
+        keyPairs.append(keyPair)
+      }
+      return keyPairs
+    }
+    let secret = Bignum(BigUInt.randomInteger(withExactWidth: 512).description)
+    let distributionBundle = dealer.distribute(secret: secret, publicKeys: keyPairs.map {$0.publicKey} , threshold: keyCount)
+    let participants: [Participant] = keyPairs.map { Participant(pvssInstance: pvss, privateKey: $0.privateKey, publicKey: $0.publicKey) }
+    let shareBundles = participants.map { $0.extractShare(distributionBundle: distributionBundle, privateKey: $0.privateKey)! }
+    measure {
+      let _ = pvss.reconstructParallelized(shareBundles: shareBundles, distributionBundle: distributionBundle)
     }
   }
   
