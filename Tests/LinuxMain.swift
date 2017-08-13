@@ -1,6 +1,6 @@
 import XCTest
-@testable import PVSS_swiftTests
+import PVSSTests
 
 XCTMain([
-    testCase(PVSS_swiftTests.allTests),
+    testCase(PVSSTest.allTests),
 ])

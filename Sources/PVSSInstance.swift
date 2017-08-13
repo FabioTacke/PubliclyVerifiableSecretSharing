@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Dispatch
 import BigInt
 import Bignum
 import CryptoSwift
@@ -163,7 +164,7 @@ public struct PVSSInstance {
   ///   - distributionBundle: The distribution bundle published by the dealer.
   ///
   /// - Returns: Returns the secret if the reconstruction process succeeded or `nil` if the reconstruction is not possible for the given set of shares due to mathematical limitations.
-  public func reconstructParallelized(shareBundles: [ShareBundle], distributionBundle: DistributionBundle) -> Bignum? {
+  public func reconstructParallelized(shareBundles: [ShareBundle], distributionBundle: DistributionBundle, threads: Int) -> Bignum? {
     if shareBundles.count < distributionBundle.commitments.count {
       return nil
     }
@@ -182,8 +183,10 @@ public struct PVSSInstance {
     
     let dispatchGroup = DispatchGroup()
     let dispatchSemaphore = DispatchSemaphore(value: 1)
+    let threadSemaphore = DispatchSemaphore(value: threads)
     
     for (position, share) in shares {
+      threadSemaphore.wait()
       dispatchGroup.enter()
       DispatchQueue.global().async {
         var exponent = Bignum(1)
@@ -220,6 +223,7 @@ public struct PVSSInstance {
         dispatchSemaphore.wait()
         secret = (secret * Bignum(factor.description)) % self.q
         dispatchSemaphore.signal()
+        threadSemaphore.signal()
         dispatchGroup.leave()
       }
     }
@@ -232,6 +236,10 @@ public struct PVSSInstance {
     let decryptedSecret = hashInt ^ BigUInt(distributionBundle.U.description)!
     
     return Bignum(decryptedSecret.description)
+  }
+  
+  public func reconstructParallelized(shareBundles: [ShareBundle], distributionBundle: DistributionBundle) -> Bignum? {
+    return reconstructParallelized(shareBundles: shareBundles, distributionBundle: distributionBundle, threads: 2)
   }
   
   public func reconstruct(shareBundles: [ShareBundle], distributionBundle: DistributionBundle) -> Bignum? {

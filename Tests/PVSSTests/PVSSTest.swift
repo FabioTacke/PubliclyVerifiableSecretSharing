@@ -12,13 +12,28 @@ import Bignum
 import CryptoSwift
 import PVSS
 
-class PVSSTest: XCTestCase {
+public class PVSSTest: XCTestCase {
   
   var pvssInstance: PVSSInstance!
   var privateKey: Bignum!
   var secret: Bignum!
   
-  override func setUp() {
+  public static var allTests = [
+    ("testPublicKeyGenerator", testPublicKeyGenerator),
+    ("testGeneratingPVSSParameters", testGeneratingPVSSParameters),
+    ("testDistribution", testDistribution),
+    ("testDistributionBundleVerification", testDistributionBundleVerification),
+    ("testShareExtraction", testShareExtraction),
+    ("testShareBundleVerification", testShareBundleVerification),
+    ("testReconstructionWithAllParticipants", testReconstructionWithAllParticipants),
+    ("testSerialReconstructionPerformance", testSerialReconstructionPerformance),
+    ("testParallelReconstructionPerformance", testParallelReconstructionPerformance),
+    ("testReconstructionWithSubgroup", testReconstructionWithSubgroup),
+    ("testExample", testExample)
+    
+  ]
+  
+  override public func setUp() {
     super.setUp()
     
     let q: Bignum = Bignum(179426549)
@@ -32,14 +47,14 @@ class PVSSTest: XCTestCase {
     secret = Bignum(1234567890)
   }
   
-  func testPublicKeyGenerator() {
+  public func testPublicKeyGenerator() {
     let publicKey: Bignum = pvssInstance.generatePublicKey(privateKey: privateKey)
     let checkPublicKey: Bignum = Bignum(148446388)
     
     XCTAssertEqual(publicKey, checkPublicKey)
   }
   
-  func testGeneratingPVSSParameters() {
+  public func testGeneratingPVSSParameters() {
     let pvss = PVSSInstance(length: 32)
     
     XCTAssert(BigUInt((pvss.q).description)!.isPrime())
@@ -47,7 +62,7 @@ class PVSSTest: XCTestCase {
     XCTAssertEqual(pvss.g, Bignum((BigUInt((pvss.q-1).description)!.divided(by: 2).quotient).description))
   }
   
-  func testDistribution() {
+  public func testDistribution() {
     let distributionBundle = getDistributionBundle()
     
     // Correct values
@@ -70,13 +85,13 @@ class PVSSTest: XCTestCase {
     }
   }
   
-  func testDistributionBundleVerification() {
+  public func testDistributionBundleVerification() {
     let distributionBundle = getDistributionBundle()
     
     XCTAssert(pvssInstance.verify(distributionBundle: distributionBundle))
   }
   
-  func testShareExtraction() {
+  public func testShareExtraction() {
     let shareBundle = getShareBundle()
     
     XCTAssertEqual(shareBundle.share, Bignum(164021044))
@@ -84,7 +99,7 @@ class PVSSTest: XCTestCase {
     XCTAssertEqual(shareBundle.response, Bignum(81801891))
   }
   
-  func testShareBundleVerification() {
+  public func testShareBundleVerification() {
     let privateKey = Bignum(7901)
     let distributionBundle = getDistributionBundle()
     let shareBundle = getShareBundle()
@@ -92,7 +107,7 @@ class PVSSTest: XCTestCase {
     XCTAssert(pvssInstance.verify(shareBundle: shareBundle, encryptedShare: distributionBundle.shares[pvssInstance.generatePublicKey(privateKey: privateKey)]!))
   }
   
-  func testReconstructionWithAllParticipants() {
+  public func testReconstructionWithAllParticipants() {
     let distributionBundle = getDistributionBundle()
     let shareBundle1 = getShareBundle()
     let shareBundle2 = ShareBundle(publicKey: Bignum(132222922), share: Bignum(157312059), challenge: Bignum(0), response: Bignum(0))
@@ -109,7 +124,7 @@ class PVSSTest: XCTestCase {
     XCTAssertEqual(reconstructedSecret, secret)
   }
   
-  func testSerialReconstructionPerformance() {
+  public func testSerialReconstructionPerformance() {
     let pvss = PVSSInstance()
     let dealer = Participant(pvssInstance: pvss)
     let keyCount = 20
@@ -129,7 +144,7 @@ class PVSSTest: XCTestCase {
     }
   }
   
-  func testParallelReconstructionPerformance() {
+  public func testParallelReconstructionPerformance() {
     let pvss = PVSSInstance()
     let dealer = Participant(pvssInstance: pvss)
     let keyCount = 20
@@ -150,7 +165,7 @@ class PVSSTest: XCTestCase {
   }
   
   // 3 out of 4 shares are present. Share of P3 is not available, therefore we need another Share of P_4 in order to reconstruct the secret.
-  func testReconstructionWithSubgroup() {
+  public func testReconstructionWithSubgroup() {
     let shareBundle1 = getShareBundle()
     let shareBundle2 = ShareBundle(publicKey: Bignum(132222922), share: Bignum(157312059), challenge: Bignum(0), response: Bignum(0))
     let publicKey4 = Bignum(42)
@@ -171,7 +186,7 @@ class PVSSTest: XCTestCase {
     
   }
   
-  func testExample() {
+  public func testExample() {
     let secretMessage = "Correct horse battery staple."
     let secret = Bignum(data: secretMessage.data(using: .utf8)!)
     
