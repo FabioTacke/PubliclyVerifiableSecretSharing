@@ -22,7 +22,7 @@ public struct Polynomial {
     
     for _ in 0...degree {
       let threshold = BigUInt(q.description)!
-      coefficientList.append(Bignum(BigUInt.randomIntegerLessThan(threshold).description))
+        coefficientList.append(Bignum(BigUInt.randomInteger(lessThan: threshold).description))
     }
     
    self.init(coefficients: coefficientList)

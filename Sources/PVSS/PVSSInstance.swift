@@ -42,7 +42,8 @@ public struct PVSSInstance {
       repeat {
         q -= 2
       } while !q.isPrime()
-      sophieGermainCandidate = (q-1).divided(by: 2).quotient
+      sophieGermainCandidate = (q-1).quotientAndRemainder(dividingBy: 2).quotient
+//      sophieGermainCandidate = (q-1).divided(by: 2).quotient
     } while !sophieGermainCandidate.isPrime()
     
     let qConverted = Bignum(q.description)
@@ -55,7 +56,7 @@ public struct PVSSInstance {
   /// Initializes a PVSSInstance with default parameters. `q` is a safe prime of length 2048 bit (RFC3526). `2` and the corresponding sophie germain prime are generators.
   public init() {
     let q = BigUInt(stringLiteral: "32317006071311007300338913926423828248817941241140239112842009751400741706634354222619689417363569347117901737909704191754605873209195028853758986185622153212175412514901774520270235796078236248884246189477587641105928646099411723245426622522193230540919037680524235519125679715870117001058055877651038861847280257976054903569732561526167081339361799541336476559160368317896729073178384589680639671900977202194168647225871031411336429319536193471636533209717077448227988588565369208645296636077250268955505928362751121174096972998068410554359584866583291642136218231078990999448652468262416972035911852507045361090559")
-    let g = Bignum((q-1).divided(by: 2).quotient.description)
+    let g = Bignum((q-1).quotientAndRemainder(dividingBy: 2).quotient.description)
     let G = Bignum(2)
     let length = 2048
     
@@ -66,11 +67,11 @@ public struct PVSSInstance {
   
   public func generatePrivateKey() -> Bignum {
     let q = BigUInt(self.q.description)!
-    var key = BigUInt.randomIntegerLessThan(q)
+    var key = BigUInt.randomInteger(lessThan: q)
     
     // We need the private key and q-1 to be coprime so that we can calculate 1/key mod (q-1) during secret reconstruction.
-    while BigUInt.gcd(key, q - 1) != 1 {
-      key = BigUInt.randomIntegerLessThan(q)
+    while key.greatestCommonDivisor(with: q - 1) != 1 {
+      key = BigUInt.randomInteger(lessThan: q)
     }
     return Bignum(key.description)
   }
@@ -106,10 +107,10 @@ public struct PVSSInstance {
       let a2 = (mod_exp(key, response, q) * mod_exp(share, distributionBundle.challenge, q)) % q
       
       // Update hash
-      let _ = try! digest.update(withBytes: x.description.data(using: .utf8)!)
-      let _ = try! digest.update(withBytes: share.description.data(using: .utf8)!)
-      let _ = try! digest.update(withBytes: a1.description.data(using: .utf8)!)
-      let _ = try! digest.update(withBytes: a2.description.data(using: .utf8)!)
+      let _ = try! digest.update(withBytes: Array(x.description.data(using: .utf8)!))
+      let _ = try! digest.update(withBytes: Array(share.description.data(using: .utf8)!))
+      let _ = try! digest.update(withBytes: Array(a1.description.data(using: .utf8)!))
+      let _ = try! digest.update(withBytes: Array(a2.description.data(using: .utf8)!))
     }
     
     // Calculate challenge
@@ -146,10 +147,10 @@ public struct PVSSInstance {
     let a1 = (mod_exp(G, shareBundle.response, q) * mod_exp(shareBundle.publicKey, shareBundle.challenge, q)) % q
     let a2 = (mod_exp(shareBundle.share, shareBundle.response, q) * mod_exp(encryptedShare, shareBundle.challenge, q)) % q
     
-    let _ = try! digest.update(withBytes: shareBundle.publicKey.description.data(using: .utf8)!)
-    let _ = try! digest.update(withBytes: encryptedShare.description.data(using: .utf8)!)
-    let _ = try! digest.update(withBytes: a1.description.data(using: .utf8)!)
-    let _ = try! digest.update(withBytes: a2.description.data(using: .utf8)!)
+    let _ = try! digest.update(withBytes: Array(shareBundle.publicKey.description.data(using: .utf8)!))
+    let _ = try! digest.update(withBytes: Array(encryptedShare.description.data(using: .utf8)!))
+    let _ = try! digest.update(withBytes: Array(a1.description.data(using: .utf8)!))
+    let _ = try! digest.update(withBytes: Array(a2.description.data(using: .utf8)!))
     
     let challengeHash = try! digest.finish().toHexString()
     let challengeInt = Bignum(hex: challengeHash) % (q-1)
@@ -200,9 +201,9 @@ public struct PVSSInstance {
           // Cancel fraction if possible
           var numerator = BigUInt(lagrangeCoefficient.numerator.description)!
           var denominator = BigUInt(lagrangeCoefficient.denominator.abs.description)!
-          let gcd = BigUInt.gcd(numerator, denominator)
-          numerator = numerator.divided(by: gcd).quotient
-          denominator = denominator.divided(by: gcd).quotient
+          let gcd = numerator.greatestCommonDivisor(with: denominator)
+          numerator = numerator.quotientAndRemainder(dividingBy: gcd).quotient
+          denominator = denominator.quotientAndRemainder(dividingBy: gcd).quotient
           
           let q1 = BigUInt((self.q - 1).description)!
           if let inverseDenominator = denominator.inverse(q1) {
@@ -271,9 +272,9 @@ public struct PVSSInstance {
         // Cancel fraction if possible
         var numerator = BigUInt(lagrangeCoefficient.numerator.description)!
         var denominator = BigUInt(lagrangeCoefficient.denominator.abs.description)!
-        let gcd = BigUInt.gcd(numerator, denominator)
-        numerator = numerator.divided(by: gcd).quotient
-        denominator = denominator.divided(by: gcd).quotient
+        let gcd = numerator.greatestCommonDivisor(with: denominator)
+        numerator = numerator.quotientAndRemainder(dividingBy: gcd).quotient
+        denominator = denominator.quotientAndRemainder(dividingBy: gcd).quotient
         
         let q1 = BigUInt((self.q - 1).description)!
         if let inverseDenominator = denominator.inverse(q1) {

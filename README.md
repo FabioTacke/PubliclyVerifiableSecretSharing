@@ -20,7 +20,7 @@ Thus PVSS can be used to share a secret among a group of participants so that ei
 ## Build settings
 Since version 2.0.0 PVSS uses GMP for speeding up the calculations. If you don't have GMP installed there's a compiled GMP library version 6.1.2 included. However you need to provide the compiler and the linker with the information where to find the GMP header file and the library. Example:
 
-`swift [build | test] -Xcc -Lgmp/include -Xlinker -Lgmp/lib`
+`swift [build | test] -Xcc -Igmp/include -Xlinker -Lgmp/lib`
 
 You can replace those paths if you already have GMP installed.
 

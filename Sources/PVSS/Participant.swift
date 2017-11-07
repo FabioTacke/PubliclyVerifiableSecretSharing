@@ -93,10 +93,10 @@ public class Participant {
       a[key] = (dleq.a1, dleq.a2)
       
       // Update challenge hash
-      let _ = try! challenge.update(withBytes: x.description.data(using: .utf8)!)
-      let _ = try! challenge.update(withBytes: share.description.data(using: .utf8)!)
-      let _ = try! challenge.update(withBytes: dleq.a1.description.data(using: .utf8)!)
-      let _ = try! challenge.update(withBytes: dleq.a2.description.data(using: .utf8)!)
+      let _ = try! challenge.update(withBytes: Array(x.description.data(using: .utf8)!))
+      let _ = try! challenge.update(withBytes: Array(share.description.data(using: .utf8)!))
+      let _ = try! challenge.update(withBytes: Array(dleq.a1.description.data(using: .utf8)!))
+      let _ = try! challenge.update(withBytes: Array(dleq.a2.description.data(using: .utf8)!))
       
       position += 1
     }
@@ -134,7 +134,7 @@ public class Participant {
   /// - Returns: The distribution bundle that is published so everyone (especially but not only the participants) can check the shares' integrity. Furthermore the participants extract their shares from it.
   public func distribute(secret: Bignum, publicKeys: [Bignum], threshold: Int) -> DistributionBundle {
     let polynomial = Polynomial(degree: threshold - 1, bitLength: pvssInstance.length, q: pvssInstance.q)
-    let w = Bignum((BigUInt.randomIntegerLessThan(BigUInt((pvssInstance.q).description)!)).description)
+    let w = Bignum((BigUInt.randomInteger(lessThan: BigUInt((pvssInstance.q).description)!)).description)
     return distribute(secret: secret, publicKeys: publicKeys, threshold: threshold, polynomial: polynomial, w: w)
   }
   
@@ -155,10 +155,10 @@ public class Participant {
     
     var dleq = DLEQ(g1: pvssInstance.G, h1: publicKey, g2: share, h2: encryptedShare, length: pvssInstance.length, q: pvssInstance.q, alpha: privateKey, w: w)
     var digest = SHA2(variant: .sha256)
-    let _ = try! digest.update(withBytes: publicKey.description.data(using: .utf8)!)
-    let _ = try! digest.update(withBytes: encryptedShare.description.data(using: .utf8)!)
-    let _ = try! digest.update(withBytes: dleq.a1.description.data(using: .utf8)!)
-    let _ = try! digest.update(withBytes: dleq.a2.description.data(using: .utf8)!)
+    let _ = try! digest.update(withBytes: Array(publicKey.description.data(using: .utf8)!))
+    let _ = try! digest.update(withBytes: Array(encryptedShare.description.data(using: .utf8)!))
+    let _ = try! digest.update(withBytes: Array(dleq.a1.description.data(using: .utf8)!))
+    let _ = try! digest.update(withBytes: Array(dleq.a2.description.data(using: .utf8)!))
     let challengeHash = try! digest.finish().toHexString()
     let challengeInt = Bignum(hex: challengeHash) % (pvssInstance.q - 1)
     

@@ -59,7 +59,7 @@ public class PVSSTest: XCTestCase {
     
     XCTAssert(BigUInt((pvss.q).description)!.isPrime())
     XCTAssert(BigUInt((pvss.g).description)!.isPrime())
-    XCTAssertEqual(pvss.g, Bignum((BigUInt((pvss.q-1).description)!.divided(by: 2).quotient).description))
+    XCTAssertEqual(pvss.g, Bignum((BigUInt((pvss.q-1).description)!.quotientAndRemainder(dividingBy: 2).quotient).description))
   }
   
   public func testDistribution() {
@@ -147,7 +147,8 @@ public class PVSSTest: XCTestCase {
   public func testParallelReconstructionPerformance() {
     let pvss = PVSSInstance()
     let dealer = Participant(pvssInstance: pvss)
-    let keyCount = 20
+    let keyCount = 75
+    let threshold = keyCount / 2
     let keyPairs: [(privateKey: Bignum, publicKey: Bignum)] = pvssKeyPairs.reduce([]) { (previouskeyPairs, keyPair) in
       var keyPairs = previouskeyPairs
       if keyPairs.count < keyCount {
@@ -156,11 +157,18 @@ public class PVSSTest: XCTestCase {
       return keyPairs
     }
     let secret = Bignum(BigUInt.randomInteger(withExactWidth: 512).description)
-    let distributionBundle = dealer.distribute(secret: secret, publicKeys: keyPairs.map {$0.publicKey} , threshold: keyCount)
+    let distributionBundle = dealer.distribute(secret: secret, publicKeys: keyPairs.map {$0.publicKey} , threshold: threshold)
     let participants: [Participant] = keyPairs.map { Participant(pvssInstance: pvss, privateKey: $0.privateKey, publicKey: $0.publicKey) }
     let shareBundles = participants.map { $0.extractShare(distributionBundle: distributionBundle, privateKey: $0.privateKey)! }
+    let reconstructionShareBundles: [ShareBundle] = shareBundles.reduce([]) { (previousShareBundles, shareBundle) in
+      var shareBundles = previousShareBundles
+      if shareBundles.count < threshold {
+        shareBundles.append(shareBundle)
+      }
+      return shareBundles
+    }
     measure {
-      let _ = pvss.reconstructParallelized(shareBundles: shareBundles, distributionBundle: distributionBundle)
+      let _ = pvss.reconstructParallelized(shareBundles: reconstructionShareBundles, distributionBundle: distributionBundle, threads: 2)
     }
   }
   

@@ -1,12 +1,25 @@
-// swift-tools-version:3.1
+// swift-tools-version:4.0
 
 import PackageDescription
 
 let package = Package(
     name: "PVSS",
+    products: [
+      .library(
+      name: "PVSS",
+    targets: ["PVSS"]),
+    ],
     dependencies: [
-        .Package(url: "https://github.com/lorentey/BigInt.git", majorVersion: 2, minor: 1),
-        .Package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", majorVersion: 0),
-        .Package(url: "https://github.com/mdaxter/BignumGMP.git", majorVersion: 1),
+        .package(url: "https://github.com/attaswift/BigInt.git", .branch("master")),
+        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", .branch("master")),
+        .package(url: "https://github.com/mdaxter/BignumGMP.git", .branch("master")),
+    ],
+    targets: [
+      .target(
+        name: "PVSS",
+        dependencies: ["BigInt", "Bignum", "CryptoSwift"]),
+      .testTarget(
+        name: "PVSSTests",
+        dependencies: ["PVSS"]),
     ]
 )

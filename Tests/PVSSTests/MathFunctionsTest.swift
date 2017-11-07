@@ -65,8 +65,8 @@ class MathFunctionsTest: XCTestCase {
     let value2: Bignum = Bignum("14735247304952934566")
     
     var digest = SHA2(variant: .sha256)
-    let _ = try! digest.update(withBytes: value1.description.data(using: .utf8)!)
-    let _ = try! digest.update(withBytes: value2.description.data(using: .utf8)!)
+    let _ = try! digest.update(withBytes: Array(value1.description.data(using: .utf8)!))
+    let _ = try! digest.update(withBytes: Array(value2.description.data(using: .utf8)!))
     let result = try! digest.finish()
     
     XCTAssertEqual(result.toHexString(), "e25e5b7edf4ea66e5238393fb4f183e0fc1593c69a522f9255a51bd0bc2b7ba7")
